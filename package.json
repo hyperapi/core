@@ -1,0 +1,48 @@
+{
+	"name": "@hyperapi/core",
+	"version": "0.1.0-beta.1",
+	"description": "This package is a core for HyperAPI project.",
+	"publishConfig": {
+		"access": "public",
+		"tag": "beta"
+	},
+	"type": "module",
+	"main": "src/main.js",
+	"exports": {
+		".": "./src/main.js",
+		"./api-errors": "./src/api-errors.js",
+		"./driver": "./src/driver.js",
+		"./error": "./src/error.js",
+		"./request": "./src/request.js",
+		"./response": "./src/response.js"
+	},
+	"peerDependencies": {
+		"oh-my-props": ">= 3.0.0-beta.10"
+	},
+	"devDependencies": {
+		"@babel/eslint-parser": "7.21.8",
+		"eslint": "8.41.0",
+		"eslint-config-xo": "0.43.1",
+		"eslint-plugin-import": "2.27.5",
+		"eslint-plugin-node": "11.1.0",
+		"eslint-plugin-promise": "6.1.1",
+		"eslint-plugin-unicorn": "47.0.0"
+	},
+	"engines": {
+		"node": ">=10.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/hyperapi/core.git"
+	},
+	"keywords": [
+		"hyperapi",
+		"api"
+	],
+	"author": "Daniil Kirichenko (https://twitter.com/kirickme)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/hyperapi/core/issues"
+	},
+	"homepage": "https://github.com/hyperapi/core#readme"
+}
