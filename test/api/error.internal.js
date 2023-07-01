@@ -1,6 +1,4 @@
 
-export default function (request) {
-	console.log(request);
-
+export default function () {
 	throw new TypeError('Invalid something given.');
 }

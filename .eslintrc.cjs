@@ -9,6 +9,7 @@ module.exports = {
 	},
 	env: {
 		es2022: true,
+		browser: true,
 		node: true,
 	},
 	extends: [
@@ -75,6 +76,7 @@ module.exports = {
 		],
 		'no-promise-executor-return': 'off',
 		'no-unused-vars': 'warn',
+		'node/no-unpublished-import': 'off',
 		'object-curly-spacing': [
 			'warn',
 			'always',
