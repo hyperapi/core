@@ -1,9 +1,8 @@
 
+import { deepStrictEqual } from 'node:assert/strict';
 import {
-	strictEqual,
-	notStrictEqual,
-	deepStrictEqual }   from 'node:assert/strict';
-import { describe, it } from 'mocha';
+	describe,
+	it      }              from 'mocha';
 
 import HyperAPIDriver  from '../src/driver.js';
 import HyperAPI        from '../src/main.js';
