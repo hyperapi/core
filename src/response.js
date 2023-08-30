@@ -2,6 +2,10 @@
 import HyperAPIError from './error.js';
 
 export default class HyperAPIResponse {
+	/**
+	 * Creates a HyperAPI response.
+	 * @param {HyperAPIError|object|Array} value The error or the response value.
+	 */
 	constructor(value) {
 		if (value instanceof HyperAPIError) {
 			this.error = value;
@@ -9,58 +13,31 @@ export default class HyperAPIResponse {
 		else if (
 			(value !== null && typeof value === 'object') // object
 			|| Array.isArray(value) // array
-			|| typeof value === 'string' // string
-			|| typeof value === 'number' // number
-			|| typeof value === 'boolean' // boolean
 		) {
 			this.data = value;
 		}
 		else {
-			throw new TypeError('Argument 0 must be an instance of HyperAPIError or a valid response value.');
+			throw new TypeError('Argument 0 must be an instance of HyperAPIError or be an object or an array.');
 		}
 	}
 
-	object() {
-		const data = {
-			code: this.error?.code ?? 0,
-		};
-
-		if (this.error && typeof this.error.description === 'string') {
-			data.description = this.error.description;
-		}
-
-		if (this.data !== undefined) {
-			data.data = this.data;
-		}
-
-		return data;
+	/**
+	 * @returns {boolean} Whether the response is successful.
+	 * @readonly
+	 */
+	get is_success() {
+		return this.error === undefined;
 	}
 
-	array() {
-		const result = [
-			this.error?.code ?? 0,
-		];
-
+	/**
+	 * Returns response as an object. For example, that can be used as the body of a HTTP response.
+	 * @returns {{[key: string]: *}?} The response.
+	 */
+	getResponse() {
 		if (this.error) {
-			result.push(this.error.description ?? '');
+			return this.error.getResponse();
 		}
 
-		if (this.data !== undefined) {
-			result.push(this.data);
-		}
-
-		return result;
-	}
-
-	json() {
-		return JSON.stringify(
-			this.object(),
-		);
-	}
-
-	compactJSON() {
-		return JSON.stringify(
-			this.array(),
-		);
+		return this.data;
 	}
 }

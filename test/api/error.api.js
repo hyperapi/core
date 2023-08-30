@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 
 import { HyperAPIBusyError } from '../../src/api-errors.js';
 

@@ -12,59 +12,68 @@ import {
 	OhMyPropsValueError }            from 'oh-my-props';
 
 export default class HyperAPI {
-	// #driver;
+	#driver;
 	#root;
-	// #middleware;
 	#turnDriverOff;
 
+	/**
+	 * Creates a HyperAPI instance.
+	 * @param {object} options The options.
+	 * @param {HyperAPIDriver} options.driver The HyperAPI driver.
+	 * @param {string=} options.root The root directory for API methods modules. Defaults to "/hyper-api" inside the current working directory.
+	 */
 	constructor({
 		driver,
-		root = joinPath(process.cwd(), 'hyper-api'),
-		// middleware = [],
+		root = joinPath(
+			process.cwd(),
+			'hyper-api',
+		),
 	}) {
 		if (driver instanceof HyperAPIDriver !== true) {
 			throw new TypeError('Property "driver" must be an instance of HyperAPIDriver.');
 		}
-		// this.#driver = driver;
+		this.#driver = driver;
 
 		this.#root = root;
-		// this.#middleware = middleware;
 
+		this.#setUpListener();
+	}
+
+	#setUpListener() {
 		const handler = (request) => {
-			this.#handler(request)
-				.then((response) => request.respondWith(response))
-				.catch(() => {}); // #handler never throws
+			this.#handleRequest(request)
+				.then((response) => request._respondWith(
+					new HyperAPIResponse(response),
+				))
+				.catch(() => {}); // never throws
 		};
 
-		driver.addEventListener(
+		this.#driver.addEventListener(
 			'HyperAPIRequest',
 			handler,
 		);
 
 		this.#turnDriverOff = () => {
-			driver.removeEventListener(
+			this.#driver.removeEventListener(
 				'HyperAPIRequest',
 				handler,
 			);
 		};
 	}
 
-	async #handler(request) {
+	async #handleRequest(request) {
 		try {
-			try {
-				return await this.#useModule(request);
-			}
-			catch (error) {
-				if (error instanceof HyperAPIError !== true) {
-					console.error(error);
-					throw new HyperAPIInternalError();
-				}
-
-				throw error;
-			}
+			return await this.#useModule(request);
 		}
 		catch (error) {
-			return new HyperAPIResponse(error);
+			// error must be an instance of HyperAPIError
+			if (error instanceof HyperAPIError !== true) {
+				console.error(error);
+				// eslint-disable-next-line no-ex-assign
+				error = new HyperAPIInternalError();
+			}
+
+			return error;
 		}
 	}
 
@@ -84,12 +93,19 @@ export default class HyperAPI {
 			}
 		}
 
-		return new HyperAPIResponse(
-			await module.default(request),
-		);
+		return module.default(request);
 	}
 
+	/**
+	 * Destroys the HyperAPI instance.
+	 */
 	destroy() {
 		this.#turnDriverOff();
 	}
 }
+
+export * from './api-errors.js';
+export { default as HyperAPIDriver } from './driver.js';
+export { default as HyperAPIError } from './error.js';
+export { default as HyperAPIRequest } from './request.js';
+export { default as HyperAPIResponse } from './response.js';

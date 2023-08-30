@@ -3,34 +3,48 @@ import { join as joinPath } from 'node:path';
 
 import { HyperAPIUnknownMethodError } from './api-errors.js';
 
-export default class HyperAPIRequest extends Event {
-	#data = {};
+/**
+ * @typedef {import('./response.js').default} HyperAPIResponse
+ */
 
-	constructor(method, args) {
+export default class HyperAPIRequest extends Event {
+	#data = new Map();
+
+	/**
+	 * @param {string} module_path The relative path to the API method module.
+	 * @param {Array<*>} args The arguments to pass to the API method.
+	 */
+	constructor(module_path, args) {
 		super('HyperAPIRequest');
 
-		this.method = method;
+		this.module_path = module_path;
 		this.args = args;
 		this.flags = {};
 	}
 
+	/**
+	 * @param {*} key The key to get.
+	 * @returns {*} The value.
+	 */
 	get(key) {
-		return this.#data[key];
+		return this.#data.get(key);
 	}
 
+	/**
+	 * @param {*} key The key to set.
+	 * @param {*} value The value to set.
+	 */
 	set(key, value) {
-		this.#data[key] = value;
-	}
-
-	get data() {
-		return Object.freeze(this.#data);
+		this.#data.set(key, value);
 	}
 
 	async _getModule(root) {
 		const filenames = [
-			this.method,
-			`${this.method}.js`,
-			joinPath(this.method, 'index.js'),
+			this.module_path,
+			`${this.module_path}.js`,
+			`${this.module_path}.mjs`,
+			`${this.module_path}.cjs`,
+			joinPath(this.module_path, 'index.js'),
 		];
 
 		for (const filename of filenames) {
@@ -54,11 +68,17 @@ export default class HyperAPIRequest extends Event {
 		this.#resolve = resolve;
 	});
 
+	/**
+	 * @returns {Promise<HyperAPIResponse>} The response.
+	 */
 	wait() {
 		return this.#promise;
 	}
 
-	respondWith(response) {
+	/**
+	 * @param {HyperAPIResponse} response The response.
+	 */
+	_respondWith(response) {
 		this.#resolve(response);
 	}
 }

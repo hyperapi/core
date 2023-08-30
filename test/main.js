@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 
 import { deepStrictEqual } from 'node:assert/strict';
 import {
@@ -22,7 +23,7 @@ async function request(method, args = {}) {
 		),
 	);
 
-	return response.array();
+	return response.getResponse();
 }
 
 describe('HyperAPI', () => {
@@ -34,10 +35,9 @@ describe('HyperAPI', () => {
 					name: 'world',
 				},
 			),
-			[
-				0,
-				'Hello, world!',
-			],
+			{
+				message: 'Hello, world!',
+			},
 		);
 	});
 
@@ -49,50 +49,50 @@ describe('HyperAPI', () => {
 					name: 123,
 				},
 			),
-			[
-				2,
-				'One of the parameters specified was missing or invalid',
-			],
+			{
+				code: 2,
+				description: 'One of the parameters specified was missing or invalid',
+			},
 		);
 	});
 
 	it('missing arguments', async () => {
 		deepStrictEqual(
 			await request('echo'),
-			[
-				2,
-				'One of the parameters specified was missing or invalid',
-			],
+			{
+				code: 2,
+				description: 'One of the parameters specified was missing or invalid',
+			},
 		);
 	});
 
 	it('api error', async () => {
 		deepStrictEqual(
 			await request('error.api'),
-			[
-				10,
-				'Endpoint is busy',
-			],
+			{
+				code: 10,
+				description: 'Endpoint is busy',
+			},
 		);
 	});
 
 	it('internal error', async () => {
 		deepStrictEqual(
 			await request('error.internal'),
-			[
-				3,
-				'Internal error',
-			],
+			{
+				code: 3,
+				description: 'Internal error',
+			},
 		);
 	});
 
 	it('unknown method', async () => {
 		deepStrictEqual(
 			await request('error.unknown-method'),
-			[
-				5,
-				'Unknown method called',
-			],
+			{
+				code: 5,
+				description: 'Unknown method called',
+			},
 		);
 	});
 });
