@@ -42,9 +42,7 @@ export default class HyperAPI {
 	#setUpListener() {
 		const handler = (request) => {
 			this.#handleRequest(request)
-				.then((response) => request._respondWith(
-					new HyperAPIResponse(response),
-				))
+				.then((hyperAPIResponse) => request._respondWith(hyperAPIResponse))
 				.catch(() => {}); // never throws
 		};
 
@@ -63,7 +61,8 @@ export default class HyperAPI {
 
 	async #handleRequest(request) {
 		try {
-			return await this.#useModule(request);
+			const response = await this.#useModule(request);
+			return new HyperAPIResponse(response);
 		}
 		catch (error) {
 			// error must be an instance of HyperAPIError

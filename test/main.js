@@ -27,7 +27,7 @@ async function request(method, args = {}) {
 }
 
 describe('HyperAPI', () => {
-	it('correct request', async () => {
+	it('correct request (sync)', async () => {
 		deepStrictEqual(
 			await request(
 				'echo',
@@ -37,6 +37,20 @@ describe('HyperAPI', () => {
 			),
 			{
 				message: 'Hello, world!',
+			},
+		);
+	});
+
+	it('correct request (async)', async () => {
+		deepStrictEqual(
+			await request(
+				'echo.async',
+				{
+					name: 'user',
+				},
+			),
+			{
+				message: 'Hello, user!',
 			},
 		);
 	});
@@ -79,6 +93,16 @@ describe('HyperAPI', () => {
 	it('internal error', async () => {
 		deepStrictEqual(
 			await request('error.internal'),
+			{
+				code: 3,
+				description: 'Internal error',
+			},
+		);
+	});
+
+	it('invalid return type', async () => {
+		deepStrictEqual(
+			await request('error.type'),
 			{
 				code: 3,
 				description: 'Internal error',
