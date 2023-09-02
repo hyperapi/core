@@ -23,7 +23,10 @@ async function request(method, args = {}) {
 		),
 	);
 
-	return response.getResponse();
+	return [
+		response.is_success,
+		response.getResponse(),
+	];
 }
 
 describe('HyperAPI', () => {
@@ -35,9 +38,12 @@ describe('HyperAPI', () => {
 					name: 'world',
 				},
 			),
-			{
-				message: 'Hello, world!',
-			},
+			[
+				true,
+				{
+					message: 'Hello, world!',
+				},
+			],
 		);
 	});
 
@@ -49,9 +55,12 @@ describe('HyperAPI', () => {
 					name: 'user',
 				},
 			),
-			{
-				message: 'Hello, user!',
-			},
+			[
+				true,
+				{
+					message: 'Hello, user!',
+				},
+			],
 		);
 	});
 
@@ -63,60 +72,78 @@ describe('HyperAPI', () => {
 					name: 123,
 				},
 			),
-			{
-				code: 2,
-				description: 'One of the parameters specified was missing or invalid',
-			},
+			[
+				false,
+				{
+					code: 2,
+					description: 'One of the parameters specified was missing or invalid',
+				},
+			],
 		);
 	});
 
 	it('missing arguments', async () => {
 		deepStrictEqual(
 			await request('echo'),
-			{
-				code: 2,
-				description: 'One of the parameters specified was missing or invalid',
-			},
+			[
+				false,
+				{
+					code: 2,
+					description: 'One of the parameters specified was missing or invalid',
+				},
+			],
 		);
 	});
 
 	it('api error', async () => {
 		deepStrictEqual(
 			await request('error.api'),
-			{
-				code: 10,
-				description: 'Endpoint is busy',
-			},
+			[
+				false,
+				{
+					code: 10,
+					description: 'Endpoint is busy',
+				},
+			],
 		);
 	});
 
 	it('internal error', async () => {
 		deepStrictEqual(
 			await request('error.internal'),
-			{
-				code: 3,
-				description: 'Internal error',
-			},
+			[
+				false,
+				{
+					code: 3,
+					description: 'Internal error',
+				},
+			],
 		);
 	});
 
 	it('invalid return type', async () => {
 		deepStrictEqual(
 			await request('error.type'),
-			{
-				code: 3,
-				description: 'Internal error',
-			},
+			[
+				false,
+				{
+					code: 3,
+					description: 'Internal error',
+				},
+			],
 		);
 	});
 
 	it('unknown method', async () => {
 		deepStrictEqual(
 			await request('error.unknown-method'),
-			{
-				code: 5,
-				description: 'Unknown method called',
-			},
+			[
+				false,
+				{
+					code: 5,
+					description: 'Unknown method called',
+				},
+			],
 		);
 	});
 });

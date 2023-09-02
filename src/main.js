@@ -11,6 +11,10 @@ import {
 	OhMyPropsType,
 	OhMyPropsValueError }            from 'oh-my-props';
 
+/**
+ * @typedef {import('./request.js').default} HyperAPIRequest
+ */
+
 export default class HyperAPI {
 	#driver;
 	#root;
@@ -40,10 +44,18 @@ export default class HyperAPI {
 	}
 
 	#setUpListener() {
-		const handler = (request) => {
-			this.#handleRequest(request)
-				.then((hyperAPIResponse) => request._respondWith(hyperAPIResponse))
-				.catch(() => {}); // never throws
+		const handler = async (request) => {
+			try {
+				request._respondWith(
+					await this.#handleRequest(request),
+				);
+			}
+			catch (error) {
+				// should never happen
+				console.error('Unexpected error happened:');
+				console.error(error);
+				process.exit(); // eslint-disable-line no-process-exit, unicorn/no-process-exit
+			}
 		};
 
 		this.#driver.addEventListener(
@@ -59,6 +71,11 @@ export default class HyperAPI {
 		};
 	}
 
+	/**
+	 * Processes a request and returns the response.
+	 * @param {HyperAPIRequest} request The HyperAPI request.
+	 * @returns {Promise<HyperAPIResponse>} The HyperAPI response.
+	 */
 	async #handleRequest(request) {
 		try {
 			const response = await this.#useModule(request);
@@ -72,7 +89,7 @@ export default class HyperAPI {
 				error = new HyperAPIInternalError();
 			}
 
-			return error;
+			return new HyperAPIResponse(error);
 		}
 	}
 
