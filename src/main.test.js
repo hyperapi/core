@@ -7,6 +7,7 @@ import { HyperAPI }        from './main.js';
 import { HyperAPIRequest } from './request.js';
 
 const driver = new HyperAPIDriver();
+// eslint-disable-next-line no-unused-vars
 const api = new HyperAPI({
 	driver,
 	root: new URL('../test/api', import.meta.url).pathname,
