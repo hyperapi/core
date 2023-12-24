@@ -7,7 +7,7 @@ import { HyperAPIUnknownMethodError } from './api-errors.js';
  * @typedef {import('./response.js').default} HyperAPIResponse
  */
 
-export default class HyperAPIRequest extends Event {
+export class HyperAPIRequest extends Event {
 	#data = new Map();
 
 	/**

@@ -1,11 +1,11 @@
 
-import HyperAPIRequest from './request.js';
+import { HyperAPIRequest } from './request.js';
 
 /**
  * @typedef {import('./response.js').default} HyperAPIResponse
  */
 
-export default class HyperAPIDriver extends EventTarget {
+export class HyperAPIDriver extends EventTarget {
 	/**
 	 * Processes a request and waits for the response.
 	 * @async

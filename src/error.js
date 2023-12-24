@@ -1,5 +1,5 @@
 
-export default class HyperAPIError extends Error {
+export class HyperAPIError extends Error {
 	/**
 	 * The error code.
 	 * @type {number}

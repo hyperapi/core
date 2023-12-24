@@ -1,7 +1,7 @@
 
-import HyperAPIError from './error.js';
+import { HyperAPIError } from './error.js';
 
-export default class HyperAPIResponse {
+export class HyperAPIResponse {
 	/**
 	 * Creates a HyperAPI response.
 	 * @param {HyperAPIError|object|Array} value The error or the response value.

@@ -1,5 +1,5 @@
 
-import HyperAPIError from './error.js';
+import { HyperAPIError } from './error.js';
 
 export class HyperAPIAuthorizationError extends HyperAPIError {
 	code = 1;

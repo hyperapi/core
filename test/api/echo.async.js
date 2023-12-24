@@ -1,6 +1,5 @@
-/* eslint-disable jsdoc/require-jsdoc */
 
-import { OhMyPropsObjectValidator } from 'oh-my-props';
+/* eslint-disable jsdoc/require-jsdoc */
 
 export default async function (request) {
 	await new Promise((resolve) => {
@@ -15,9 +14,17 @@ export default async function (request) {
 	};
 }
 
-export const args = new OhMyPropsObjectValidator({
-	name: {
-		type: String,
-		required: true,
-	},
-});
+import {
+	never,
+	object,
+	string }       from 'valibot';
+import { valibot } from '../validator.js';
+
+export const argsValidator = valibot.bind(
+	object(
+		{
+			name: string(),
+		},
+		never(),
+	),
+);

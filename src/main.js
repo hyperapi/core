@@ -1,21 +1,15 @@
 
-import { join as joinPath } from 'node:path';
-
-import {
-	HyperAPIInternalError,
-	HyperAPIInvalidParametersError } from './api-errors.js';
-import HyperAPIDriver                from './driver.js';
-import HyperAPIError                 from './error.js';
-import HyperAPIResponse              from './response.js';
-import {
-	OhMyPropsType,
-	OhMyPropsValueError }            from 'oh-my-props';
+import { join as joinPath }      from 'node:path';
+import { HyperAPIInternalError } from './api-errors.js';
+import { HyperAPIDriver }        from './driver.js';
+import { HyperAPIError }         from './error.js';
+import { HyperAPIResponse }      from './response.js';
 
 /**
  * @typedef {import('./request.js').default} HyperAPIRequest
  */
 
-export default class HyperAPI {
+export class HyperAPI {
 	#driver;
 	#root;
 	#turnDriverOff;
@@ -96,17 +90,8 @@ export default class HyperAPI {
 	async #useModule(request) {
 		const module = await request._getModule(this.#root);
 
-		if (module.args instanceof OhMyPropsType) {
-			try {
-				request.args = module.args.cast(request.args);
-			}
-			catch (error) {
-				if (error instanceof OhMyPropsValueError) {
-					throw new HyperAPIInvalidParametersError();
-				}
-
-				throw error;
-			}
+		if (typeof module.argsValidator === 'function') {
+			request.args = await module.argsValidator(request.args);
 		}
 
 		return module.default(request);
@@ -121,7 +106,7 @@ export default class HyperAPI {
 }
 
 export * from './api-errors.js';
-export { default as HyperAPIDriver } from './driver.js';
-export { default as HyperAPIError } from './error.js';
-export { default as HyperAPIRequest } from './request.js';
-export { default as HyperAPIResponse } from './response.js';
+export { HyperAPIDriver } from './driver.js';
+export { HyperAPIError } from './error.js';
+export { HyperAPIRequest } from './request.js';
+export { HyperAPIResponse } from './response.js';
