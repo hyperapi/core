@@ -1,6 +1,6 @@
 {
 	"name": "@hyperapi/core",
-	"version": "0.1.0-beta.6",
+	"version": "0.1.0-beta.7",
 	"description": "This package is a core for HyperAPI project.",
 	"publishConfig": {
 		"access": "public"
@@ -29,7 +29,7 @@
 		"valibot": "^0.24.1"
 	},
 	"scripts": {
-		"test": "npm run test-node && bun test",
+		"test": "bun test && npm run test-node",
 		"test-node": "NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
 		"build": "bun run build-cjs",
 		"build-cjs": "bunx esbuild --bundle --platform=node --format=cjs --packages=external --outfile=dist/hyperapi-core.cjs src/main.js",

@@ -7,6 +7,11 @@ import { HyperAPIUnknownMethodError } from './api-errors.js';
  * @typedef {import('./response.js').default} HyperAPIResponse
  */
 
+const ERROR_CODES_MODULE_NOT_FOUND = new Set([
+	'MODULE_NOT_FOUND',
+	'ERR_MODULE_NOT_FOUND',
+]);
+
 export class HyperAPIRequest extends Event {
 	#data = new Map();
 
@@ -48,16 +53,29 @@ export class HyperAPIRequest extends Event {
 		];
 
 		for (const filename of filenames) {
+			const path = joinPath(
+				root,
+				filename,
+			);
+
 			try {
 				// eslint-disable-next-line no-await-in-loop
-				return await import(
-					joinPath(
-						root,
-						filename,
-					)
-				);
+				return await import(path);
 			}
-			catch {}
+			catch (error) {
+				if (
+					error.code === 'MODULE_NOT_FOUND' // node
+					|| error.code === 'ERR_MODULE_NOT_FOUND' // bun
+				) {
+					const path_error = error.moduleName ?? error.specifier; // node ?? bun
+					// skip error only if we cannot found the module itself
+					if (path === path_error) {
+						continue;
+					}
+				}
+
+				throw error;
+			}
 		}
 
 		throw new HyperAPIUnknownMethodError();

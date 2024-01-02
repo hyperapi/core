@@ -44,6 +44,19 @@ describe('HyperAPI', () => {
 		]);
 	});
 
+	test('method in directory', async () => {
+		const result = await request(
+			'dir/nested',
+		);
+
+		expect(result).toStrictEqual([
+			true,
+			{
+				ok: true,
+			},
+		]);
+	});
+
 	test('correct request (async)', async () => {
 		const result = await request(
 			'echo.async',
@@ -133,6 +146,30 @@ describe('HyperAPI', () => {
 			{
 				code: 5,
 				description: 'Unknown method called',
+			},
+		]);
+	});
+
+	test('invalid import path inside module', async () => {
+		const result = await request('error.import.path');
+
+		expect(result).toStrictEqual([
+			false,
+			{
+				code: 3,
+				description: 'Internal error',
+			},
+		]);
+	});
+
+	test('invalid import field inside module', async () => {
+		const result = await request('error.import.field');
+
+		expect(result).toStrictEqual([
+			false,
+			{
+				code: 3,
+				description: 'Internal error',
 			},
 		]);
 	});

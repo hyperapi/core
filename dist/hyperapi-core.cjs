@@ -201,12 +201,20 @@ var HyperAPIRequest = class extends Event {
       (0, import_node_path.join)(this.module_path, "index.js")
     ];
     for (const filename of filenames) {
+      const path = (0, import_node_path.join)(
+        root,
+        filename
+      );
       try {
-        return await import((0, import_node_path.join)(
-          root,
-          filename
-        ));
-      } catch {
+        return await import(path);
+      } catch (error) {
+        if (error.code === "MODULE_NOT_FOUND" || error.code === "ERR_MODULE_NOT_FOUND") {
+          const path_error = error.moduleName ?? error.specifier;
+          if (path === path_error) {
+            continue;
+          }
+        }
+        throw error;
       }
     }
     throw new HyperAPIUnknownMethodError();
