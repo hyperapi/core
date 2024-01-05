@@ -209,7 +209,7 @@ var HyperAPIRequest = class extends Event {
         return await import(path);
       } catch (error) {
         if (error.code === "MODULE_NOT_FOUND" || error.code === "ERR_MODULE_NOT_FOUND") {
-          const path_error = error.moduleName ?? error.specifier;
+          const path_error = error.moduleName ?? error.specifier ?? new URL(error.url).pathname;
           if (path === path_error) {
             continue;
           }

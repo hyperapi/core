@@ -1,16 +1,10 @@
 
-import { join as joinPath } from 'node:path';
-
+import { join as joinPath }           from 'node:path';
 import { HyperAPIUnknownMethodError } from './api-errors.js';
 
 /**
  * @typedef {import('./response.js').default} HyperAPIResponse
  */
-
-const ERROR_CODES_MODULE_NOT_FOUND = new Set([
-	'MODULE_NOT_FOUND',
-	'ERR_MODULE_NOT_FOUND',
-]);
 
 export class HyperAPIRequest extends Event {
 	#data = new Map();
@@ -67,7 +61,9 @@ export class HyperAPIRequest extends Event {
 					error.code === 'MODULE_NOT_FOUND' // node
 					|| error.code === 'ERR_MODULE_NOT_FOUND' // bun
 				) {
-					const path_error = error.moduleName ?? error.specifier; // node ?? bun
+					const path_error = error.moduleName // node
+						?? error.specifier // bun
+						?? new URL(error.url).pathname; // node v20.10 in raw, not in jest's test env
 					// skip error only if we cannot found the module itself
 					if (path === path_error) {
 						continue;
