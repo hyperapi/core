@@ -263,6 +263,8 @@ var HyperAPIResponse = class {
   constructor(value) {
     if (value instanceof HyperAPIError) {
       this.error = value;
+    } else if (value === void 0) {
+      this.data = {};
     } else if (value !== null && typeof value === "object" || Array.isArray(value)) {
       this.data = value;
     } else {

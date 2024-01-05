@@ -10,6 +10,9 @@ export class HyperAPIResponse {
 		if (value instanceof HyperAPIError) {
 			this.error = value;
 		}
+		else if (value === undefined) {
+			this.data = {};
+		}
 		else if (
 			(value !== null && typeof value === 'object') // object
 			|| Array.isArray(value) // array
