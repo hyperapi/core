@@ -1,12 +1,16 @@
 
-import { join as joinPath }      from 'node:path';
+import {
+	dirname,
+	join as joinPath }           from 'node:path';
 import { HyperAPIInternalError } from './api-errors.js';
 import { HyperAPIDriver }        from './driver.js';
 import { HyperAPIError }         from './error.js';
 import { HyperAPIResponse }      from './response.js';
 
+const ENTRYPOINT_PATH = dirname(process.argv[1]);
+
 /**
- * @typedef {import('./request.js').default} HyperAPIRequest
+ * @typedef {import('./request.js').HyperAPIRequest} HyperAPIRequest
  */
 
 export class HyperAPI {
@@ -23,7 +27,7 @@ export class HyperAPI {
 	constructor({
 		driver,
 		root = joinPath(
-			process.cwd(),
+			ENTRYPOINT_PATH,
 			'hyper-api',
 		),
 	}) {

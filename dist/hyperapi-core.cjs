@@ -291,6 +291,7 @@ var HyperAPIResponse = class {
 };
 
 // src/main.js
+var ENTRYPOINT_PATH = (0, import_node_path2.dirname)(process.argv[1]);
 var HyperAPI = class {
   #driver;
   #root;
@@ -304,7 +305,7 @@ var HyperAPI = class {
   constructor({
     driver,
     root = (0, import_node_path2.join)(
-      process.cwd(),
+      ENTRYPOINT_PATH,
       "hyper-api"
     )
   }) {
