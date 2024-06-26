@@ -1,24 +1,29 @@
 
-import { HyperAPIRequest } from './request.js';
-
-/**
- * @typedef {import('./response.js').default} HyperAPIResponse
- */
+import { HyperAPIRequest }  from './request.js';
+import { HyperAPIResponse } from './response.js';
 
 export class HyperAPIDriver extends EventTarget {
 	/**
-	 * Processes a request and waits for the response.
-	 * @async
-	 * @param {HyperAPIRequest} request The HyperAPI request.
-	 * @returns {Promise<HyperAPIResponse>} The HyperAPI response.
+	 * @param {HyperAPIRequest} request -
+	 * @returns {Promise<HyperAPIResponse>} -
 	 */
-	onRequest(request) {
-		if (request instanceof HyperAPIRequest !== true) {
-			throw new TypeError('Argument 0 must be an instance of HyperAPIRequest.');
-		}
+	async processRequest(request) {
+		const promise = new Promise((resolve) => {
+			this.addEventListener(
+				request.response_event_name,
+				(response) => {
+					if (response instanceof HyperAPIResponse) {
+						resolve(response);
+					}
+				},
+				{
+					once: true,
+				},
+			);
+		});
 
 		this.dispatchEvent(request);
 
-		return request.wait();
+		return promise;
 	}
 }

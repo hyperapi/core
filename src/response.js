@@ -1,12 +1,16 @@
 
-import { HyperAPIError } from './error.js';
+import { HyperAPIError }   from './error.js';
+import { HyperAPIRequest } from './request.js';
 
-export class HyperAPIResponse {
+export class HyperAPIResponse extends Event {
 	/**
 	 * Creates a HyperAPI response.
-	 * @param {HyperAPIError|object|Array} value The error or the response value.
+	 * @param {HyperAPIRequest} request The request.
+	 * @param {HyperAPIError | Record<string, any> | any[]} value The error or the response value.
 	 */
-	constructor(value) {
+	constructor(request, value) {
+		super(request.response_event_name);
+
 		if (value instanceof HyperAPIError) {
 			this.error = value;
 		}

@@ -14,17 +14,11 @@ export default async function (request) {
 	};
 }
 
-import {
-	never,
-	object,
-	string }       from 'valibot';
+import * as v      from 'valibot';
 import { valibot } from '../validator.js';
 
 export const argsValidator = valibot.bind(
-	object(
-		{
-			name: string(),
-		},
-		never(),
-	),
+	v.strictObject({
+		name: v.string(),
+	}),
 );

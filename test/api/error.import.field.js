@@ -1,8 +1,12 @@
 /* eslint-disable jsdoc/require-jsdoc */
 
 // eslint-disable-next-line import/named
-import { foo } from '../validator.js';
+import { deadbeef } from '../validator.js';
 
 export default function () {
-	return foo;
+	return true;
+}
+
+export function _() {
+	return deadbeef;
 }

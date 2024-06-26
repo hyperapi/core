@@ -19,6 +19,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/main.js
 var main_exports = {};
 __export(main_exports, {
+  HyperAPI: () => HyperAPI,
   HyperAPIAuthorizationError: () => HyperAPIAuthorizationError,
   HyperAPIBusyError: () => HyperAPIBusyError,
   HyperAPICaptchaError: () => HyperAPICaptchaError,
@@ -34,11 +35,10 @@ __export(main_exports, {
   HyperAPIRateLimitError: () => HyperAPIRateLimitError,
   HyperAPIRequest: () => HyperAPIRequest,
   HyperAPIResponse: () => HyperAPIResponse,
-  HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError,
-  default: () => HyperAPI
+  HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError
 });
 module.exports = __toCommonJS(main_exports);
-var import_node_path2 = require("node:path");
+var import_node_path = require("node:path");
 
 // src/error.js
 var HyperAPIError = class extends Error {
@@ -56,26 +56,35 @@ var HyperAPIError = class extends Error {
   description = null;
   /**
    * The error data.
-   * @type {{[key: string]: *}?}
+   * @type {{[key: string]: any}}
    * @readonly
    */
-  data = null;
+  data;
+  /** @type {number?} */
+  httpStatus;
+  /** @type {Record<string, any>?} */
+  httpHeaders;
   /**
-   * @param {{[key: string]: *}?} data The error data. Cannot contain "code" or "description" properties.
+   * @param {{[key: string]: any}} [data] The error data.
    */
-  constructor(data = null) {
+  constructor(data) {
     super();
-    if (data !== null && typeof data !== "object") {
+    if (data !== null && typeof data === "object") {
+      this.data = data;
+    } else if (data !== void 0) {
       throw new TypeError("Argument 0 must be an object or not be provided");
     }
-    if (data && ("code" in data || "description" in data)) {
-      throw new TypeError('Argument 0 must not contain "code" or "description" properties');
-    }
-    this.data = data;
   }
+  /**
+   * @returns {string} -
+   */
   get message() {
     return `${this.description ?? ""} (code ${this.code})`;
   }
+  /**
+   * Creates response object.
+   * @returns {HyperAPIErrorResponse} -
+   */
   getResponse() {
     const result = {
       code: this.code
@@ -83,10 +92,10 @@ var HyperAPIError = class extends Error {
     if (typeof this.description === "string") {
       result.description = this.description;
     }
-    return {
-      ...result,
-      ...this.data
-    };
+    if (this.data) {
+      result.data = this.data;
+    }
+    return result;
   }
 };
 
@@ -165,96 +174,50 @@ var HyperAPIMaintenanceError = class extends HyperAPIError {
 };
 
 // src/request.js
-var import_node_path = require("node:path");
+var import_node_crypto = require("node:crypto");
 var HyperAPIRequest = class extends Event {
-  #data = /* @__PURE__ */ new Map();
+  /**
+   * The unique identifier for this request.
+   * @type {string}
+   * @readonly
+   */
+  response_event_name = "response:" + (0, import_node_crypto.randomUUID)();
+  /**
+   * The relative path to the JavaScript module that contains requested API method.
+   * @type {string}
+   * @readonly
+   */
+  module_path;
+  /**
+   * Request arguments to pass to the API method.
+   * @type {HyperAPIRequestArgs}
+   * @readonly
+   */
+  args;
   /**
    * @param {string} module_path The relative path to the API method module.
-   * @param {Array<*>} args The arguments to pass to the API method.
+   * @param {HyperAPIRequestArgs} args The arguments to pass to the API method.
    */
   constructor(module_path, args) {
-    super("HyperAPIRequest");
+    super("request");
     this.module_path = module_path;
     this.args = args;
-    this.flags = {};
-  }
-  /**
-   * @param {*} key The key to get.
-   * @returns {*} The value.
-   */
-  get(key) {
-    return this.#data.get(key);
-  }
-  /**
-   * @param {*} key The key to set.
-   * @param {*} value The value to set.
-   */
-  set(key, value) {
-    this.#data.set(key, value);
-  }
-  async _getModule(root) {
-    const filenames = [
-      this.module_path,
-      `${this.module_path}.js`,
-      `${this.module_path}.mjs`,
-      `${this.module_path}.cjs`,
-      (0, import_node_path.join)(this.module_path, "index.js")
-    ];
-    for (const filename of filenames) {
-      try {
-        return await import((0, import_node_path.join)(
-          root,
-          filename
-        ));
-      } catch {
-      }
-    }
-    throw new HyperAPIUnknownMethodError();
-  }
-  #resolve;
-  #promise = new Promise((resolve) => {
-    this.#resolve = resolve;
-  });
-  /**
-   * @returns {Promise<HyperAPIResponse>} The response.
-   */
-  wait() {
-    return this.#promise;
-  }
-  /**
-   * @param {HyperAPIResponse} response The response.
-   */
-  _respondWith(response) {
-    this.#resolve(response);
-  }
-};
-
-// src/driver.js
-var HyperAPIDriver = class extends EventTarget {
-  /**
-   * Processes a request and waits for the response.
-   * @async
-   * @param {HyperAPIRequest} request The HyperAPI request.
-   * @returns {Promise<HyperAPIResponse>} The HyperAPI response.
-   */
-  onRequest(request) {
-    if (request instanceof HyperAPIRequest !== true) {
-      throw new TypeError("Argument 0 must be an instance of HyperAPIRequest.");
-    }
-    this.dispatchEvent(request);
-    return request.wait();
   }
 };
 
 // src/response.js
-var HyperAPIResponse = class {
+var HyperAPIResponse = class extends Event {
   /**
    * Creates a HyperAPI response.
-   * @param {HyperAPIError|object|Array} value The error or the response value.
+   * @param {HyperAPIRequest} request The request.
+   * @param {HyperAPIError | Record<string, any> | any[]} value The error or the response value.
    */
-  constructor(value) {
+  constructor(request, value) {
+    super(request.response_event_name);
     if (value instanceof HyperAPIError) {
       this.error = value;
+    } else if (value === void 0) {
+      this.data = {};
     } else if (value !== null && typeof value === "object" || Array.isArray(value)) {
       this.data = value;
     } else {
@@ -280,21 +243,50 @@ var HyperAPIResponse = class {
   }
 };
 
+// src/driver.js
+var HyperAPIDriver = class extends EventTarget {
+  /**
+   * @param {HyperAPIRequest} request -
+   * @returns {Promise<HyperAPIResponse>} -
+   */
+  async processRequest(request) {
+    const promise = new Promise((resolve) => {
+      this.addEventListener(
+        request.response_event_name,
+        (response) => {
+          if (response instanceof HyperAPIResponse) {
+            resolve(response);
+          }
+        },
+        {
+          once: true
+        }
+      );
+    });
+    this.dispatchEvent(request);
+    return promise;
+  }
+};
+
 // src/main.js
+var ENTRYPOINT_PATH = (0, import_node_path.dirname)(process.argv[1]);
 var HyperAPI = class {
+  /** @type {HyperAPIDriver} The HyperAPI driver. */
   #driver;
+  /** @type {string} The root directory for API methods modules. */
   #root;
-  #turnDriverOff;
+  /** @type {function(HyperAPIRequest): void} Handles a request. */
+  #requestHandler;
   /**
    * Creates a HyperAPI instance.
    * @param {object} options The options.
    * @param {HyperAPIDriver} options.driver The HyperAPI driver.
-   * @param {string=} options.root The root directory for API methods modules. Defaults to "/hyper-api" inside the current working directory.
+   * @param {string} [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
    */
   constructor({
     driver,
-    root = (0, import_node_path2.join)(
-      process.cwd(),
+    root = (0, import_node_path.join)(
+      ENTRYPOINT_PATH,
       "hyper-api"
     )
   }) {
@@ -302,31 +294,33 @@ var HyperAPI = class {
       throw new TypeError('Property "driver" must be an instance of HyperAPIDriver.');
     }
     this.#driver = driver;
-    this.#root = root;
-    this.#setUpListener();
-  }
-  #setUpListener() {
-    const handler = async (request) => {
+    this.#requestHandler = async (request) => {
       try {
-        request._respondWith(
-          await this.#handleRequest(request)
-        );
+        const response = await this.#handleRequest(request);
+        this.#driver.dispatchEvent(response);
       } catch (error) {
         console.error("Unexpected error happened:");
         console.error(error);
-        process.exit();
+        console.error("This error should not have reached this point.");
+        console.error("This is probably a bug in the HyperAPI driver you are using or in the HyperAPI itself.");
+        console.error("Now exiting the process.");
+        process.exit(1);
       }
     };
     this.#driver.addEventListener(
-      "HyperAPIRequest",
-      handler
+      "request",
+      this.#requestHandler
     );
-    this.#turnDriverOff = () => {
-      this.#driver.removeEventListener(
-        "HyperAPIRequest",
-        handler
-      );
-    };
+    this.#root = root;
+  }
+  /**
+   * Removes the request event listener from the driver.
+   */
+  #turnDriverOff() {
+    this.#driver.removeEventListener(
+      "request",
+      this.#requestHandler
+    );
   }
   /**
    * Processes a request and returns the response.
@@ -335,27 +329,66 @@ var HyperAPI = class {
    */
   async #handleRequest(request) {
     try {
-      const response = await this.#useModule(request);
-      return new HyperAPIResponse(response);
+      const response_data = await this.#useModule(request);
+      return new HyperAPIResponse(
+        request,
+        response_data
+      );
     } catch (error) {
       if (error instanceof HyperAPIError !== true) {
         console.error(error);
         error = new HyperAPIInternalError();
       }
-      return new HyperAPIResponse(error);
+      return new HyperAPIResponse(
+        request,
+        error
+      );
     }
   }
-  async #useModule(request) {
-    const module2 = await request._getModule(this.#root);
-    if (module2.args instanceof OhMyPropsType) {
+  /**
+   * Processes a request and returns the response.
+   * @param {HyperAPIRequest} request The HyperAPI request.
+   * @returns {Promise<HyperAPIModule>} The HyperAPI response.
+   */
+  async #getModule(request) {
+    const filenames = [
+      request.module_path,
+      `${request.module_path}.js`,
+      `${request.module_path}.mjs`,
+      `${request.module_path}.cjs`,
+      (0, import_node_path.join)(request.module_path, "index.js")
+    ];
+    for (const filename of filenames) {
+      const path = (0, import_node_path.join)(
+        this.#root,
+        filename
+      );
       try {
-        request.args = module2.args.cast(request.args);
+        return await import(path);
       } catch (error) {
-        if (error instanceof OhMyPropsValueError) {
-          throw new HyperAPIInvalidParametersError();
+        if (error.code === "MODULE_NOT_FOUND" || error.code === "ERR_MODULE_NOT_FOUND") {
+          const path_error = error.moduleName ?? error.specifier ?? new URL(error.url).pathname;
+          if (path === path_error) {
+            continue;
+          }
+        }
+        if (error instanceof Error && error.message.startsWith(`Failed to load url ${path} `)) {
+          continue;
         }
         throw error;
       }
+    }
+    throw new HyperAPIUnknownMethodError();
+  }
+  /**
+   * Processes a request and returns the response.
+   * @param {HyperAPIRequest} request The HyperAPI request.
+   * @returns {Promise<HyperAPIModuleResponse>} The HyperAPI response.
+   */
+  async #useModule(request) {
+    const module2 = await this.#getModule(request);
+    if (typeof module2.argsValidator === "function") {
+      request.args = await module2.argsValidator(request.args);
     }
     return module2.default(request);
   }
@@ -368,6 +401,7 @@ var HyperAPI = class {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  HyperAPI,
   HyperAPIAuthorizationError,
   HyperAPIBusyError,
   HyperAPICaptchaError,

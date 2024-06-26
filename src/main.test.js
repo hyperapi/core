@@ -1,20 +1,25 @@
 
-/* global describe, test, expect */
 /* eslint-disable jsdoc/require-jsdoc */
 
+// @ts-check
+
+import {
+	afterAll,
+	describe,
+	test,
+	expect }               from 'vitest';
 import { HyperAPIDriver }  from './driver.js';
 import { HyperAPI }        from './main.js';
 import { HyperAPIRequest } from './request.js';
 
 const driver = new HyperAPIDriver();
-// eslint-disable-next-line no-unused-vars
 const api = new HyperAPI({
 	driver,
 	root: new URL('../test/api', import.meta.url).pathname,
 });
 
 async function request(method, args = {}) {
-	const response = await driver.onRequest(
+	const response = await driver.processRequest(
 		new HyperAPIRequest(
 			method,
 			args,
@@ -26,6 +31,10 @@ async function request(method, args = {}) {
 		response.getResponse(),
 	];
 }
+
+afterAll(() => {
+	api.destroy();
+});
 
 describe('HyperAPI', () => {
 	test('correct request (sync)', async () => {
