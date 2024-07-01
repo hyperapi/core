@@ -8,14 +8,15 @@
 
 import {
 	dirname,
-	join as joinPath }           from 'node:path';
+	join as joinPath }               from 'node:path';
 import {
 	HyperAPIInternalError,
-	HyperAPIUnknownMethodError } from './api-errors.js';
-import { HyperAPIDriver }        from './driver.js';
-import { HyperAPIError }         from './error.js';
-import { HyperAPIRequest }       from './request.js';
-import { HyperAPIResponse }      from './response.js';
+	HyperAPIUnknownMethodError }     from './api-errors.js';
+import { HyperAPIDriver }            from './driver.js';
+import { HyperAPIError }             from './error.js';
+import { HyperAPIRequest }           from './request.js';
+import { HyperAPIResponse }          from './response.js';
+import { extractModuleNotFoundPath } from './utils/extract-module-not-found-path.js';
 
 const ENTRYPOINT_PATH = dirname(process.argv[1]);
 
@@ -137,16 +138,10 @@ export class HyperAPI {
 				return await import(path);
 			}
 			catch (error) {
-				if (
-					error.code === 'MODULE_NOT_FOUND' // node
-					|| error.code === 'ERR_MODULE_NOT_FOUND' // bun
-				) {
-					const path_error = error.moduleName // node
-						?? error.specifier // bun
-						?? new URL(error.url).pathname; // node v20.10 in raw, not in jest's test env
-
+				if (error.code === 'ERR_MODULE_NOT_FOUND') {
+					const path_not_found = extractModuleNotFoundPath(error);
 					// skip error only if we cannot found the module itself
-					if (path === path_error) {
+					if (path === path_not_found) {
 						continue;
 					}
 				}

@@ -1,6 +1,6 @@
 {
 	"name": "@hyperapi/core",
-	"version": "0.2.0-beta.2",
+	"version": "0.2.0-beta.3",
 	"description": "Core package of the HyperAPI project.",
 	"publishConfig": {
 		"access": "public"
@@ -32,12 +32,11 @@
 	},
 	"scripts": {
 		"test": "npm run test:vitest && bun test --coverage",
-		"test:vitest": "vitest run --no-file-parallelism",
+		"test:vitest": "vitest run --no-file-parallelism --exclude '**/extract-*'",
 		"build": "bun run build:types && bun run build:cjs",
 		"build:cjs": "bunx esbuild --bundle --platform=node --format=cjs --packages=external --outfile=dist/main.cjs src/main.js",
 		"build:types": "bunx tsc --skipLibCheck --declaration --emitDeclarationOnly --outDir types",
-		"publish:npm": "pnpm i && bun run build && eslint . && bunx tsc --skipLibCheck --noemit && bun run test && npm publish",
-		"publish:npm:beta": "bun run publish:npm --tag beta"
+		"publish:npm": "pnpm i && bun run build && eslint . && bunx tsc --skipLibCheck --noemit && bun run test && npm publish"
 	},
 	"repository": {
 		"type": "git",

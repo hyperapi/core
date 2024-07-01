@@ -1,8 +1,6 @@
 
 /* eslint-disable jsdoc/require-jsdoc */
 
-// @ts-check
-
 import {
 	afterAll,
 	describe,

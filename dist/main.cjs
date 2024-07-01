@@ -38,7 +38,7 @@ __export(main_exports, {
   HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError
 });
 module.exports = __toCommonJS(main_exports);
-var import_node_path = require("node:path");
+var import_node_path2 = require("node:path");
 
 // src/error.js
 var HyperAPIError = class extends Error {
@@ -268,8 +268,44 @@ var HyperAPIDriver = class extends EventTarget {
   }
 };
 
+// src/utils/extract-module-not-found-path.js
+var import_node_path = require("node:path");
+var REGEXP_MODULE_SPECIFIER = /Cannot find module ["'](.+)["'] (?:imported\s)?from/;
+var REGEXP_MODULE_REQUESTER = /\s(?:imported\s)?from ["'](.+)["']/;
+function extractPath(error) {
+  if (typeof error.specifier === "string") {
+    return error.specifier;
+  }
+  if (error.url instanceof URL) {
+    return error.url.pathname;
+  }
+  if (typeof error.url === "string") {
+    return new URL(error.url).pathname;
+  }
+  const match = error.message.match(REGEXP_MODULE_SPECIFIER);
+  if (match !== null) {
+    return match[1];
+  }
+  throw error;
+}
+function extractModuleNotFoundPath(error) {
+  const path = extractPath(error);
+  if (path.startsWith("/")) {
+    return path;
+  }
+  const match = error.message.match(REGEXP_MODULE_REQUESTER);
+  if (match !== null) {
+    const specifier_from = match[1];
+    return (0, import_node_path.join)(
+      (0, import_node_path.dirname)(specifier_from),
+      path
+    );
+  }
+  throw error;
+}
+
 // src/main.js
-var ENTRYPOINT_PATH = (0, import_node_path.dirname)(process.argv[1]);
+var ENTRYPOINT_PATH = (0, import_node_path2.dirname)(process.argv[1]);
 var HyperAPI = class {
   /** @type {HyperAPIDriver} The HyperAPI driver. */
   #driver;
@@ -285,7 +321,7 @@ var HyperAPI = class {
    */
   constructor({
     driver,
-    root = (0, import_node_path.join)(
+    root = (0, import_node_path2.join)(
       ENTRYPOINT_PATH,
       "hyper-api"
     )
@@ -356,19 +392,19 @@ var HyperAPI = class {
       `${request.module_path}.js`,
       `${request.module_path}.mjs`,
       `${request.module_path}.cjs`,
-      (0, import_node_path.join)(request.module_path, "index.js")
+      (0, import_node_path2.join)(request.module_path, "index.js")
     ];
     for (const filename of filenames) {
-      const path = (0, import_node_path.join)(
+      const path = (0, import_node_path2.join)(
         this.#root,
         filename
       );
       try {
         return await import(path);
       } catch (error) {
-        if (error.code === "MODULE_NOT_FOUND" || error.code === "ERR_MODULE_NOT_FOUND") {
-          const path_error = error.moduleName ?? error.specifier ?? new URL(error.url).pathname;
-          if (path === path_error) {
+        if (error.code === "ERR_MODULE_NOT_FOUND") {
+          const path_not_found = extractModuleNotFoundPath(error);
+          if (path === path_not_found) {
             continue;
           }
         }
