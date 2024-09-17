@@ -1,6 +1,9 @@
+"use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -14,9 +17,17 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/main.js
+// dist/esm/main.js
 var main_exports = {};
 __export(main_exports, {
   HyperAPI: () => HyperAPI,
@@ -24,7 +35,6 @@ __export(main_exports, {
   HyperAPIBusyError: () => HyperAPIBusyError,
   HyperAPICaptchaError: () => HyperAPICaptchaError,
   HyperAPIConfirmationError: () => HyperAPIConfirmationError,
-  HyperAPIDriver: () => HyperAPIDriver,
   HyperAPIError: () => HyperAPIError,
   HyperAPIForbiddenError: () => HyperAPIForbiddenError,
   HyperAPIInternalError: () => HyperAPIInternalError,
@@ -33,73 +43,56 @@ __export(main_exports, {
   HyperAPIOTPError: () => HyperAPIOTPError,
   HyperAPIObjectsLimitError: () => HyperAPIObjectsLimitError,
   HyperAPIRateLimitError: () => HyperAPIRateLimitError,
-  HyperAPIRequest: () => HyperAPIRequest,
-  HyperAPIResponse: () => HyperAPIResponse,
   HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError
 });
 module.exports = __toCommonJS(main_exports);
-var import_node_path2 = require("node:path");
+var import_node_path2 = __toESM(require("node:path"), 1);
 
-// src/error.js
+// dist/esm/utils/is-record.js
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && value.constructor === Object && Object.prototype.toString.call(value) === "[object Object]";
+}
+
+// dist/esm/error.js
 var HyperAPIError = class extends Error {
-  /**
-   * The error code.
-   * @type {number}
-   * @readonly
-   */
-  code;
-  /**
-   * The error description.
-   * @type {string?}
-   * @readonly
-   */
-  description = null;
-  /**
-   * The error data.
-   * @type {{[key: string]: any}}
-   * @readonly
-   */
+  /** The error code. */
+  code = 0;
+  /** The error description. */
+  description = "HyperAPI error";
+  /** The error data. */
   data;
-  /** @type {number?} */
+  /** HTTP status code. */
   httpStatus;
-  /** @type {Record<string, any>?} */
+  /** HTTP headers to return. */
   httpHeaders;
-  /**
-   * @param {{[key: string]: any}} [data] The error data.
-   */
   constructor(data) {
     super();
-    if (data !== null && typeof data === "object") {
+    if (isRecord(data)) {
       this.data = data;
-    } else if (data !== void 0) {
-      throw new TypeError("Argument 0 must be an object or not be provided");
     }
   }
-  /**
-   * @returns {string} -
-   */
   get message() {
-    return `${this.description ?? ""} (code ${this.code})`;
+    return `${this.description} (code ${this.code}).`;
   }
   /**
    * Creates response object.
-   * @returns {HyperAPIErrorResponse} -
+   * @returns -
    */
   getResponse() {
-    const result = {
+    const response = {
       code: this.code
     };
     if (typeof this.description === "string") {
-      result.description = this.description;
+      response.description = this.description;
     }
     if (this.data) {
-      result.data = this.data;
+      response.data = this.data;
     }
-    return result;
+    return response;
   }
 };
 
-// src/api-errors.js
+// dist/esm/api-errors.js
 var HyperAPIAuthorizationError = class extends HyperAPIError {
   code = 1;
   description = "Authorization error";
@@ -173,266 +166,202 @@ var HyperAPIMaintenanceError = class extends HyperAPIError {
   // Service Unavailable
 };
 
-// src/request.js
-var import_node_crypto = require("node:crypto");
-var HyperAPIRequest = class extends Event {
-  /**
-   * The unique identifier for this request.
-   * @type {string}
-   * @readonly
-   */
-  response_event_name = "response:" + (0, import_node_crypto.randomUUID)();
-  /**
-   * The relative path to the JavaScript module that contains requested API method.
-   * @type {string}
-   * @readonly
-   */
-  module_path;
-  /**
-   * Request arguments to pass to the API method.
-   * @type {HyperAPIRequestArgs}
-   * @readonly
-   */
-  args;
-  /**
-   * @param {string} module_path The relative path to the API method module.
-   * @param {HyperAPIRequestArgs} args The arguments to pass to the API method.
-   */
-  constructor(module_path, args) {
-    super("request");
-    this.module_path = module_path;
-    this.args = args;
-  }
-};
-
-// src/response.js
-var HyperAPIResponse = class extends Event {
-  /**
-   * Creates a HyperAPI response.
-   * @param {HyperAPIRequest} request The request.
-   * @param {HyperAPIError | Record<string, any> | any[]} value The error or the response value.
-   */
-  constructor(request, value) {
-    super(request.response_event_name);
-    if (value instanceof HyperAPIError) {
-      this.error = value;
-    } else if (value === void 0) {
-      this.data = {};
-    } else if (value !== null && typeof value === "object" || Array.isArray(value)) {
-      this.data = value;
-    } else {
-      throw new TypeError("Argument 0 must be an instance of HyperAPIError or be an object or an array.");
-    }
-  }
-  /**
-   * @returns {boolean} Whether the response is successful.
-   * @readonly
-   */
-  get is_success() {
-    return this.error === void 0;
-  }
-  /**
-   * Returns response as an object. For example, that can be used as the body of a HTTP response.
-   * @returns {{[key: string]: *}?} The response.
-   */
-  getResponse() {
-    if (this.error) {
-      return this.error.getResponse();
-    }
-    return this.data;
-  }
-};
-
-// src/driver.js
-var HyperAPIDriver = class extends EventTarget {
-  /**
-   * @param {HyperAPIRequest} request -
-   * @returns {Promise<HyperAPIResponse>} -
-   */
-  async processRequest(request) {
-    const promise = new Promise((resolve) => {
-      this.addEventListener(
-        request.response_event_name,
-        (response) => {
-          if (response instanceof HyperAPIResponse) {
-            resolve(response);
-          }
-        },
-        {
-          once: true
+// dist/esm/router.js
+var import_itty_router = require("itty-router");
+var import_node_fs = require("node:fs");
+var import_node_path = __toESM(require("node:path"), 1);
+function createRouter(path) {
+  const router = (0, import_itty_router.IttyRouter)();
+  scanDirectory(router, path);
+  return router;
+}
+function useRouter(router, method, path) {
+  return router.fetch({
+    method,
+    url: `file://${path}`
+  });
+}
+var REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
+var REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
+var REGEXP_PATH_SLUG = /\[(\w+)]/g;
+function scanDirectory(router, path, regexp_parts = [""]) {
+  const result = (0, import_node_fs.readdirSync)(path, {
+    withFileTypes: true
+  });
+  const routes = {
+    0: [],
+    // routes with no method and no slug
+    1: [],
+    // routes with method and no slug
+    2: [],
+    // routes with no method and slug
+    3: []
+    // routes with method and slug
+  };
+  for (const entry of result) {
+    const entry_path = import_node_path.default.join(path, entry.name);
+    if (entry.isFile()) {
+      let file_name = entry.name;
+      if (REGEXP_FILE_EXTENSION.test(file_name)) {
+        file_name = file_name.replace(REGEXP_FILE_EXTENSION, "");
+        let method = "all";
+        const method_match = file_name.match(REGEXP_HTTP_METHOD);
+        const has_method = method_match ? 1 : 0;
+        if (method_match) {
+          method = method_match[1];
+          file_name = file_name.replace(REGEXP_HTTP_METHOD, "");
         }
-      );
+        const has_slug = REGEXP_PATH_SLUG.test(file_name) ? 2 : 0;
+        file_name = file_name.replaceAll(REGEXP_PATH_SLUG, ":$1");
+        routes[has_method | has_slug].push({
+          method,
+          path: [
+            ...regexp_parts,
+            file_name
+          ].join(import_node_path.default.sep),
+          module_path: entry_path
+        });
+      }
+    } else {
+      scanDirectory(router, entry_path, [
+        ...regexp_parts,
+        entry.name.replaceAll(REGEXP_PATH_SLUG, ":$1")
+      ]);
+    }
+  }
+  for (const route of [
+    ...routes[1],
+    ...routes[3],
+    ...routes[0],
+    ...routes[2]
+  ]) {
+    router[route.method](route.path, (r) => {
+      const response = {
+        module_path: route.module_path,
+        args: r.params
+      };
+      return response;
     });
-    this.dispatchEvent(request);
-    return promise;
   }
-};
-
-// src/utils/extract-module-not-found-path.js
-var import_node_path = require("node:path");
-var REGEXP_MODULE_SPECIFIER = /Cannot find module ["'](.+)["'] (?:imported\s)?from/;
-var REGEXP_MODULE_REQUESTER = /\s(?:imported\s)?from ["'](.+)["']/;
-function extractPath(error) {
-  if (typeof error.specifier === "string") {
-    return error.specifier;
-  }
-  if (error.url instanceof URL) {
-    return error.url.pathname;
-  }
-  if (typeof error.url === "string") {
-    return new URL(error.url).pathname;
-  }
-  const match = error.message.match(REGEXP_MODULE_SPECIFIER);
-  if (match !== null) {
-    return match[1];
-  }
-  throw error;
-}
-function extractModuleNotFoundPath(error) {
-  const path = extractPath(error);
-  if (path.startsWith("/")) {
-    return path;
-  }
-  const match = error.message.match(REGEXP_MODULE_REQUESTER);
-  if (match !== null) {
-    const specifier_from = match[1];
-    return (0, import_node_path.join)(
-      (0, import_node_path.dirname)(specifier_from),
-      path
-    );
-  }
-  throw error;
 }
 
-// src/main.js
-var ENTRYPOINT_PATH = (0, import_node_path2.dirname)(process.argv[1]);
+// dist/esm/main.js
+var ENTRYPOINT_PATH = import_node_path2.default.dirname(process.argv[1]);
 var HyperAPI = class {
-  /** @type {HyperAPIDriver} The HyperAPI driver. */
-  #driver;
-  /** @type {string} The root directory for API methods modules. */
-  #root;
-  /** @type {function(HyperAPIRequest): void} Handles a request. */
-  #requestHandler;
+  router;
+  driver;
   /**
    * Creates a HyperAPI instance.
-   * @param {object} options The options.
-   * @param {HyperAPIDriver} options.driver The HyperAPI driver.
-   * @param {string} [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
+   * @param options The options.
+   * @param options.driver The driver.
+   * @param [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
    */
-  constructor({
-    driver,
-    root = (0, import_node_path2.join)(
-      ENTRYPOINT_PATH,
-      "hyper-api"
-    )
-  }) {
-    if (driver instanceof HyperAPIDriver !== true) {
-      throw new TypeError('Property "driver" must be an instance of HyperAPIDriver.');
-    }
-    this.#driver = driver;
-    this.#requestHandler = async (request) => {
-      try {
-        const response = await this.#handleRequest(request);
-        this.#driver.dispatchEvent(response);
-      } catch (error) {
-        console.error("Unexpected error happened:");
-        console.error(error);
-        console.error("This error should not have reached this point.");
-        console.error("This is probably a bug in the HyperAPI driver you are using or in the HyperAPI itself.");
-        console.error("Now exiting the process.");
-        process.exit(1);
-      }
-    };
-    this.#driver.addEventListener(
-      "request",
-      this.#requestHandler
-    );
-    this.#root = root;
-  }
-  /**
-   * Removes the request event listener from the driver.
-   */
-  #turnDriverOff() {
-    this.#driver.removeEventListener(
-      "request",
-      this.#requestHandler
-    );
-  }
-  /**
-   * Processes a request and returns the response.
-   * @param {HyperAPIRequest} request The HyperAPI request.
-   * @returns {Promise<HyperAPIResponse>} The HyperAPI response.
-   */
-  async #handleRequest(request) {
-    try {
-      const response_data = await this.#useModule(request);
-      return new HyperAPIResponse(
-        request,
-        response_data
-      );
-    } catch (error) {
-      if (error instanceof HyperAPIError !== true) {
-        console.error(error);
-        error = new HyperAPIInternalError();
-      }
-      return new HyperAPIResponse(
-        request,
-        error
-      );
-    }
-  }
-  /**
-   * Processes a request and returns the response.
-   * @param {HyperAPIRequest} request The HyperAPI request.
-   * @returns {Promise<HyperAPIModule>} The HyperAPI response.
-   */
-  async #getModule(request) {
-    const filenames = [
-      request.module_path,
-      `${request.module_path}.js`,
-      `${request.module_path}.mjs`,
-      `${request.module_path}.cjs`,
-      (0, import_node_path2.join)(request.module_path, "index.js")
-    ];
-    for (const filename of filenames) {
-      const path = (0, import_node_path2.join)(
-        this.#root,
-        filename
-      );
-      try {
-        return await import(path);
-      } catch (error) {
-        if (error.code === "ERR_MODULE_NOT_FOUND") {
-          const path_not_found = extractModuleNotFoundPath(error);
-          if (path === path_not_found) {
-            continue;
+  constructor({ driver, root = import_node_path2.default.join(ENTRYPOINT_PATH, "hyper-api") }) {
+    this.driver = driver;
+    this.router = createRouter(root);
+    this.driver.start(async (driver_request) => {
+      const [request, module_, response] = await this.processRequest(driver_request);
+      if (request && module_) {
+        for (const hook of this.handlers.response) {
+          try {
+            await hook(request, module_, response);
+          } catch (error) {
+            console.error('Error in "response" hook:');
+            console.error(error);
           }
         }
-        if (error instanceof Error && error.message.startsWith(`Failed to load url ${path} `)) {
-          continue;
-        }
-        throw error;
       }
+      return response;
+    });
+  }
+  handlers = {
+    transformer: void 0,
+    module: [],
+    response: []
+  };
+  /**
+   * Use this hook add properties to the request before it is send to the API module.
+   *
+   * This hook can be set only once.
+   * @param transformer The callback function.
+   */
+  setTransformer(transformer) {
+    if (this.handlers.transformer) {
+      throw new Error("Transformer has already been set.");
     }
-    throw new HyperAPIUnknownMethodError();
+    this.handlers.transformer = transformer;
   }
   /**
-   * Processes a request and returns the response.
-   * @param {HyperAPIRequest} request The HyperAPI request.
-   * @returns {Promise<HyperAPIModuleResponse>} The HyperAPI response.
+   * Adds a hook to be called when the API module is imported.
+   * @param callback -
    */
-  async #useModule(request) {
-    const module2 = await this.#getModule(request);
-    if (typeof module2.argsValidator === "function") {
-      request.args = await module2.argsValidator(request.args);
-    }
-    return module2.default(request);
+  onModule(callback) {
+    this.handlers.module.push(callback);
   }
   /**
-   * Destroys the HyperAPI instance.
+   * Adds a hook to be called right before the response is sent back.
+   *
+   * This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
+   * @param callback -
    */
+  onResponse(callback) {
+    this.handlers.response.push(callback);
+  }
+  async processRequest(driver_request) {
+    let request = null;
+    let module_ = null;
+    try {
+      if (driver_request.path.startsWith("/") !== true) {
+        driver_request.path = `/${driver_request.path}`;
+      }
+      const router_response = await useRouter(this.router, driver_request.method, driver_request.path);
+      if (!router_response) {
+        return [
+          request,
+          module_,
+          new HyperAPIUnknownMethodError()
+        ];
+      }
+      driver_request.args = {
+        ...driver_request.args,
+        ...router_response.args
+      };
+      request = this.handlers.transformer ? await this.handlers.transformer(driver_request) : driver_request;
+      module_ = await import(router_response.module_path);
+      if (module_.argsValidator) {
+        request.args = module_.argsValidator(request.args);
+      }
+      for (const hook of this.handlers.module) {
+        await hook(request, module_);
+      }
+      const response = await module_.default(request);
+      return [
+        request,
+        module_,
+        response
+      ];
+    } catch (error) {
+      if (error instanceof HyperAPIError) {
+        return [
+          request,
+          module_,
+          error
+        ];
+      }
+      console.error(error);
+      return [
+        request,
+        module_,
+        new HyperAPIInternalError()
+      ];
+    }
+    throw new Error("Unreachable");
+  }
+  /** Destroys the HyperAPI instance. */
   destroy() {
-    this.#turnDriverOff();
+    this.handlers.transformer = void 0;
+    this.handlers.module.splice(0);
+    this.handlers.response.splice(0);
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
@@ -442,7 +371,6 @@ var HyperAPI = class {
   HyperAPIBusyError,
   HyperAPICaptchaError,
   HyperAPIConfirmationError,
-  HyperAPIDriver,
   HyperAPIError,
   HyperAPIForbiddenError,
   HyperAPIInternalError,
@@ -451,7 +379,5 @@ var HyperAPI = class {
   HyperAPIOTPError,
   HyperAPIObjectsLimitError,
   HyperAPIRateLimitError,
-  HyperAPIRequest,
-  HyperAPIResponse,
   HyperAPIUnknownMethodError
 });
