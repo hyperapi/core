@@ -35,7 +35,7 @@
 		"build:ts": "rm -r dist/esm ; tsc && (mv dist/esm/src dist/.esm && rm -r dist/esm && mv dist/.esm dist/esm)",
 		"lint": "eslint . && tsc --skipLibCheck --noemit",
 		"publish:npm": "bun run build && bun run lint && bun run test && npm publish",
-		"test": "rm -r dist ; npm run test:vitest && bun test --coverage",
+		"test": "npm run test:vitest && bun test --coverage src/ test/",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},
 	"repository": {

@@ -1,0 +1,9 @@
+import { HyperAPI } from './main';
+import type { HyperAPIRequest, HyperAPIRequestArgs } from './request';
+import type { MaybePromise } from './utils/types';
+export type HyperAPIModuleResponse = Record<string, unknown> | unknown[] | undefined;
+export interface HyperAPIModule<R extends HyperAPIRequest<HyperAPIRequestArgs>> {
+    readonly default: (request: R) => MaybePromise<HyperAPIModuleResponse>;
+    readonly argsValidator: (args: unknown) => R extends HyperAPIRequest<infer A> ? A : never;
+}
+export type InferModule<H extends HyperAPI<any, any, any>> = H extends HyperAPI<infer _D, infer _R, infer M> ? M : never;
