@@ -1,4 +1,4 @@
-import { type ErrorData, HyperAPIError } from './error';
+import { type ErrorData, HyperAPIError } from './error.js';
 export declare class HyperAPIAuthorizationError<D extends ErrorData> extends HyperAPIError<D> {
     code: number;
     description: string;

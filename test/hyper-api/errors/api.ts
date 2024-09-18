@@ -1,8 +1,8 @@
 /* eslint-disable jsdoc/require-jsdoc */
 
 import * as v from 'valibot';
-import { HyperAPIBusyError } from '../../../src/api-errors';
-import { type LocalRequest } from '../../setup';
+import { HyperAPIBusyError } from '../../../src/api-errors.js';
+import { type LocalRequest } from '../../setup.js';
 
 export default function (request: LocalRequest<ReturnType<typeof argsValidator>>) {
 	throw new HyperAPIBusyError(

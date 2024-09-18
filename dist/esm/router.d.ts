@@ -1,5 +1,5 @@
 import { type IRequest, type IttyRouterType } from 'itty-router';
-import { HTTPMethod } from './utils/types';
+import { HTTPMethod } from './utils/types.js';
 /**
  * Creates new IttyRouter from filesystem.
  * @param path The path to scan.

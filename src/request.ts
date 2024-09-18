@@ -1,7 +1,7 @@
 import type {
 	EmptyObject,
 	HTTPMethod,
-} from './utils/types';
+} from './utils/types.js';
 
 export type HyperAPIRequestArgs = Record<string, unknown>;
 

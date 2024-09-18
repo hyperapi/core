@@ -1,7 +1,7 @@
 import nodePath from 'node:path';
-import { HyperAPIInternalError, HyperAPIUnknownMethodError, } from './api-errors';
-import { HyperAPIError } from './error';
-import { createRouter, useRouter, } from './router';
+import { HyperAPIInternalError, HyperAPIUnknownMethodError, } from './api-errors.js';
+import { HyperAPIError } from './error.js';
+import { createRouter, useRouter, } from './router.js';
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
 export class HyperAPI {
     router;
@@ -133,5 +133,5 @@ export class HyperAPI {
         this.handlers.response.splice(0);
     }
 }
-export * from './api-errors';
-export { HyperAPIError } from './error';
+export * from './api-errors.js';
+export { HyperAPIError } from './error.js';

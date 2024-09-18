@@ -1,10 +1,10 @@
 import type {
 	HyperAPIRequest,
-} from './request';
-import type { HyperAPIResponse } from './response';
+} from './request.js';
+import type { HyperAPIResponse } from './response.js';
 import {
 	MaybePromise,
-} from './utils/types';
+} from './utils/types.js';
 
 export type HyperAPIDriverHandler<R extends HyperAPIRequest = HyperAPIRequest> = (request: R) => MaybePromise<HyperAPIResponse>;
 

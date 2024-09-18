@@ -1,4 +1,4 @@
-import { isRecord } from './utils/is-record';
+import { isRecord } from './utils/is-record.js';
 
 interface HyperAPIErrorResponse {
 	code: number;

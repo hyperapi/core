@@ -3,7 +3,7 @@ import {
 	expect,
 	test,
 } from 'vitest';
-import { driver } from '../../setup';
+import { driver } from '../../setup.js';
 
 test('internal error', async () => {
 	const result = await driver.trigger(

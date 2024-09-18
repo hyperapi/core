@@ -7,7 +7,7 @@ import {
 import {
 	driver,
 	hyperApi,
-} from '../test/setup';
+} from '../test/setup.js';
 
 afterAll(() => {
 	hyperApi.destroy();

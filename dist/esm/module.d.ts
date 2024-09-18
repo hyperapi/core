@@ -1,6 +1,6 @@
-import { HyperAPI } from './main';
-import type { HyperAPIRequest, HyperAPIRequestArgs } from './request';
-import type { MaybePromise } from './utils/types';
+import { HyperAPI } from './main.js';
+import type { HyperAPIRequest, HyperAPIRequestArgs } from './request.js';
+import type { MaybePromise } from './utils/types.js';
 export type HyperAPIModuleResponse = Record<string, unknown> | unknown[] | undefined;
 export interface HyperAPIModule<R extends HyperAPIRequest<HyperAPIRequestArgs>> {
     readonly default: (request: R) => MaybePromise<HyperAPIModuleResponse>;

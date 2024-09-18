@@ -1,22 +1,21 @@
-
 import nodePath                 from 'node:path';
 import {
 	HyperAPIInternalError,
 	HyperAPIUnknownMethodError,
-} from './api-errors';
+} from './api-errors.js';
 import type {
 	HyperAPIDriver,
 	InferDriverRequest,
-} from './driver';
-import { HyperAPIError } from './error';
-import type { HyperAPIModule } from './module';
-import type { HyperAPIRequest } from './request';
-import type { HyperAPIResponse } from './response';
+} from './driver.js';
+import { HyperAPIError } from './error.js';
+import type { HyperAPIModule } from './module.js';
+import type { HyperAPIRequest } from './request.js';
+import type { HyperAPIResponse } from './response.js';
 import {
 	createRouter,
 	useRouter,
-} from './router';
-import type { MaybePromise } from './utils/types';
+} from './router.js';
+import type { MaybePromise } from './utils/types.js';
 
 interface HyperAPIHandlers<
 	D extends HyperAPIDriver,
@@ -208,20 +207,20 @@ export class HyperAPI<
 	}
 }
 
-export * from './api-errors';
+export * from './api-errors.js';
 export type {
 	HyperAPIDriver,
 	HyperAPIDriverHandler,
-} from './driver';
-export { HyperAPIError } from './error';
+} from './driver.js';
+export { HyperAPIError } from './error.js';
 export type {
 	HyperAPIModule,
 	// HyperAPIModuleRequest,
 	// HyperAPIModuleResponse,
 	InferModule,
-} from './module';
+} from './module.js';
 export type {
 	HyperAPIRequest,
 	HyperAPIRequestArgs,
-} from './request';
-export type { HyperAPIResponse } from './response';
+} from './request.js';
+export type { HyperAPIResponse } from './response.js';

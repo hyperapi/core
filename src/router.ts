@@ -4,10 +4,10 @@ import {
 	IttyRouter,
 	type IRequest,
 	type IttyRouterType,
-}                        from 'itty-router';
-import { readdirSync }   from 'node:fs';
-import nodePath          from 'node:path';
-import { HTTPMethod } from './utils/types';
+} from 'itty-router';
+import { readdirSync } from 'node:fs';
+import nodePath from 'node:path';
+import { HTTPMethod } from './utils/types.js';
 
 /**
  * Creates new IttyRouter from filesystem.

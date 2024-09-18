@@ -5,8 +5,8 @@ import type {
 	HyperAPIRequest,
 	HyperAPIResponse,
 	InferModule,
-} from '../../src/main';
-import { hyperApi } from '../setup';
+} from '../../src/main.js';
+import { hyperApi } from '../setup.js';
 
 type Module = InferModule<typeof hyperApi>;
 

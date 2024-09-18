@@ -1,7 +1,7 @@
 import {
 	type ErrorData,
 	HyperAPIError,
-} from './error';
+} from './error.js';
 
 export class HyperAPIAuthorizationError<D extends ErrorData> extends HyperAPIError<D> {
 	code = 1;

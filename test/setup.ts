@@ -6,11 +6,11 @@ import {
 	HyperAPIModule,
 	HyperAPIRequest,
 	HyperAPIRequestArgs,
-} from '../src/main';
+} from '../src/main.js';
 import type {
 	EmptyObject,
 	HTTPMethod,
-} from '../src/utils/types';
+} from '../src/utils/types.js';
 
 interface DriverRequest<A extends HyperAPIRequestArgs = EmptyObject> extends HyperAPIRequest<A> {
 	foo: string;

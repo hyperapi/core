@@ -1,4 +1,4 @@
-import { isRecord } from './utils/is-record';
+import { isRecord } from './utils/is-record.js';
 export class HyperAPIError extends Error {
     /** The error code. */
     code = 0;

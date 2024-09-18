@@ -1,6 +1,6 @@
-import type { HyperAPIDriver, InferDriverRequest } from './driver';
-import type { HyperAPIModule } from './module';
-import type { HyperAPIRequest } from './request';
+import type { HyperAPIDriver, InferDriverRequest } from './driver.js';
+import type { HyperAPIModule } from './module.js';
+import type { HyperAPIRequest } from './request.js';
 export declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends InferDriverRequest<D>, M extends HyperAPIModule<R> = HyperAPIModule<R>> {
     private router;
     private driver;
@@ -38,9 +38,9 @@ export declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R exten
     /** Destroys the HyperAPI instance. */
     destroy(): void;
 }
-export * from './api-errors';
-export type { HyperAPIDriver, HyperAPIDriverHandler, } from './driver';
-export { HyperAPIError } from './error';
-export type { HyperAPIModule, InferModule, } from './module';
-export type { HyperAPIRequest, HyperAPIRequestArgs, } from './request';
-export type { HyperAPIResponse } from './response';
+export * from './api-errors.js';
+export type { HyperAPIDriver, HyperAPIDriverHandler, } from './driver.js';
+export { HyperAPIError } from './error.js';
+export type { HyperAPIModule, InferModule, } from './module.js';
+export type { HyperAPIRequest, HyperAPIRequestArgs, } from './request.js';
+export type { HyperAPIResponse } from './response.js';

@@ -4,7 +4,7 @@ import {
 	test,
 	expect,
 } from 'vitest';
-import { HyperAPIError } from './error';
+import { HyperAPIError } from './error.js';
 
 class HyperAPICustomError extends HyperAPIError<any> {
 	code = 1001;

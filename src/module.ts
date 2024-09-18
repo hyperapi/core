@@ -1,11 +1,11 @@
-import { HyperAPI } from './main';
+import { HyperAPI } from './main.js';
 import type {
 	HyperAPIRequest,
 	HyperAPIRequestArgs,
-} from './request';
+} from './request.js';
 import type {
 	MaybePromise,
-} from './utils/types';
+} from './utils/types.js';
 
 export type HyperAPIModuleResponse = Record<string, unknown> | unknown[] | undefined;
 
