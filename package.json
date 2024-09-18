@@ -23,11 +23,10 @@
 	"devDependencies": {
 		"@kirick/eslint-config": "^0.1.30",
 		"@types/bun": "^1.1.9",
-		"@types/node": "^22.5.5",
 		"eslint": "9.10.0",
 		"typescript": "5.5.4",
 		"valibot": "^0.42.0",
-		"vitest": "^2.1.1"
+		"vitest": "2.1.1"
 	},
 	"scripts": {
 		"build": "rm -r dist ; bun run build:ts && bun run build:cjs",
