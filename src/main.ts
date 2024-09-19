@@ -224,3 +224,7 @@ export type {
 	HyperAPIRequestArgs,
 } from './request.js';
 export type { HyperAPIResponse } from './response.js';
+export {
+	isHyperApiMethod,
+	type HyperAPIMethod,
+} from './utils/methods.js';

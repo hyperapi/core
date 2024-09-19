@@ -7,7 +7,7 @@ import {
 } from 'itty-router';
 import { readdirSync } from 'node:fs';
 import nodePath from 'node:path';
-import { HTTPMethod } from './utils/types.js';
+import { HyperAPIMethod } from './utils/methods.js';
 
 /**
  * Creates new IttyRouter from filesystem.
@@ -37,7 +37,7 @@ interface RouterResponse {
  */
 export function useRouter(
 	router: IttyRouterType<IRequest, unknown[], unknown>,
-	method: HTTPMethod,
+	method: HyperAPIMethod,
 	path: string,
 ) {
 	return router.fetch({
@@ -51,7 +51,7 @@ const REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
 const REGEXP_PATH_SLUG = /\[(\w+)]/g;
 
 interface Route {
-	method: Lowercase<Exclude<HTTPMethod, 'UNKNOWN'>> | 'all';
+	method: Lowercase<Exclude<HyperAPIMethod, 'UNKNOWN'>> | 'all';
 	path: string;
 	module_path: string;
 }

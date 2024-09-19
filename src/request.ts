@@ -1,6 +1,8 @@
 import type {
+	HyperAPIMethod,
+} from './utils/methods.js';
+import type {
 	EmptyObject,
-	HTTPMethod,
 } from './utils/types.js';
 
 export type HyperAPIRequestArgs = Record<string, unknown>;
@@ -8,7 +10,7 @@ export type HyperAPIRequestArgs = Record<string, unknown>;
 export interface HyperAPIRequest<
 	A extends HyperAPIRequestArgs = EmptyObject,
 > {
-	method: HTTPMethod;
+	method: HyperAPIMethod;
 	path: string;
 	args: A;
 }
