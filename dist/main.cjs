@@ -1,53 +1,65 @@
-"use strict";
 var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
+var __toESM = (mod, isNodeMode, target) => {
+  target = mod != null ? __create(__getProtoOf(mod)) : {};
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
+    if (!__hasOwnProp.call(to, key))
+      __defProp(to, key, {
+        get: () => mod[key],
+        enumerable: true
+      });
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __moduleCache = /* @__PURE__ */ new WeakMap;
+var __toCommonJS = (from) => {
+  var entry = __moduleCache.get(from), desc;
+  if (entry)
+    return entry;
+  entry = __defProp({}, "__esModule", { value: true });
+  if (from && typeof from === "object" || typeof from === "function")
+    __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+      get: () => from[key],
+      enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+    }));
+  __moduleCache.set(from, entry);
+  return entry;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: (newValue) => all[name] = () => newValue
+    });
+};
 
 // dist/esm/main.js
-var main_exports = {};
-__export(main_exports, {
-  HyperAPI: () => HyperAPI,
-  HyperAPIAuthorizationError: () => HyperAPIAuthorizationError,
-  HyperAPIBusyError: () => HyperAPIBusyError,
-  HyperAPICaptchaError: () => HyperAPICaptchaError,
-  HyperAPIConfirmationError: () => HyperAPIConfirmationError,
-  HyperAPIError: () => HyperAPIError,
-  HyperAPIForbiddenError: () => HyperAPIForbiddenError,
-  HyperAPIInternalError: () => HyperAPIInternalError,
-  HyperAPIInvalidParametersError: () => HyperAPIInvalidParametersError,
-  HyperAPIMaintenanceError: () => HyperAPIMaintenanceError,
-  HyperAPIOTPError: () => HyperAPIOTPError,
-  HyperAPIObjectsLimitError: () => HyperAPIObjectsLimitError,
-  HyperAPIRateLimitError: () => HyperAPIRateLimitError,
+var exports_main = {};
+__export(exports_main, {
+  isHyperApiMethod: () => isHyperApiMethod,
   HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError,
-  isHyperApiMethod: () => isHyperApiMethod
+  HyperAPIRateLimitError: () => HyperAPIRateLimitError,
+  HyperAPIObjectsLimitError: () => HyperAPIObjectsLimitError,
+  HyperAPIOTPError: () => HyperAPIOTPError,
+  HyperAPIMaintenanceError: () => HyperAPIMaintenanceError,
+  HyperAPIInvalidParametersError: () => HyperAPIInvalidParametersError,
+  HyperAPIInternalError: () => HyperAPIInternalError,
+  HyperAPIForbiddenError: () => HyperAPIForbiddenError,
+  HyperAPIError: () => HyperAPIError,
+  HyperAPIConfirmationError: () => HyperAPIConfirmationError,
+  HyperAPICaptchaError: () => HyperAPICaptchaError,
+  HyperAPIBusyError: () => HyperAPIBusyError,
+  HyperAPIAuthorizationError: () => HyperAPIAuthorizationError,
+  HyperAPI: () => HyperAPI
 });
-module.exports = __toCommonJS(main_exports);
-var import_node_path2 = __toESM(require("node:path"), 1);
+module.exports = __toCommonJS(exports_main);
+var import_node_path2 = __toESM(require("node:path"));
 
 // dist/esm/utils/is-record.js
 function isRecord(value) {
@@ -55,16 +67,11 @@ function isRecord(value) {
 }
 
 // dist/esm/error.js
-var HyperAPIError = class extends Error {
-  /** The error code. */
+class HyperAPIError extends Error {
   code = 0;
-  /** The error description. */
   description = "HyperAPI error";
-  /** The error data. */
   data;
-  /** HTTP status code. */
   httpStatus;
-  /** HTTP headers to return. */
   httpHeaders;
   constructor(data) {
     super();
@@ -75,10 +82,6 @@ var HyperAPIError = class extends Error {
   get message() {
     return `${this.description} (code ${this.code}).`;
   }
-  /**
-   * Creates response object.
-   * @returns -
-   */
   getResponse() {
     const response = {
       code: this.code
@@ -91,88 +94,87 @@ var HyperAPIError = class extends Error {
     }
     return response;
   }
-};
+}
 
 // dist/esm/api-errors.js
-var HyperAPIAuthorizationError = class extends HyperAPIError {
+class HyperAPIAuthorizationError extends HyperAPIError {
   code = 1;
   description = "Authorization error";
   httpStatus = 401;
-  // Unauthorized
-};
-var HyperAPIInvalidParametersError = class extends HyperAPIError {
+}
+
+class HyperAPIInvalidParametersError extends HyperAPIError {
   code = 2;
   description = "One of the parameters specified was missing or invalid";
   httpStatus = 400;
-  // Bad Request
-};
-var HyperAPIInternalError = class extends HyperAPIError {
+}
+
+class HyperAPIInternalError extends HyperAPIError {
   code = 3;
   description = "Internal error";
   httpStatus = 500;
-  // Internal Server Error
-};
-var HyperAPIForbiddenError = class extends HyperAPIError {
+}
+
+class HyperAPIForbiddenError extends HyperAPIError {
   code = 4;
   description = "You do not have permission to perform this action";
   httpStatus = 403;
-  // Forbidden
-};
-var HyperAPIUnknownMethodError = class extends HyperAPIError {
+}
+
+class HyperAPIUnknownMethodError extends HyperAPIError {
   code = 5;
   description = "Unknown method called";
   httpStatus = 404;
-  // Not Found
-};
-var HyperAPIObjectsLimitError = class extends HyperAPIError {
+}
+
+class HyperAPIObjectsLimitError extends HyperAPIError {
   code = 6;
   description = "Too many objects requested";
   httpStatus = 400;
-  // Bad Request
-};
-var HyperAPIRateLimitError = class extends HyperAPIError {
+}
+
+class HyperAPIRateLimitError extends HyperAPIError {
   code = 7;
   description = "Rate limit exceeded";
   httpStatus = 429;
-  // Too Many Requests
-};
-var HyperAPICaptchaError = class extends HyperAPIError {
+}
+
+class HyperAPICaptchaError extends HyperAPIError {
   code = 8;
   description = "Captcha required";
   httpStatus = 428;
-  // Precondition Required
-};
-var HyperAPIBusyError = class extends HyperAPIError {
+}
+
+class HyperAPIBusyError extends HyperAPIError {
   code = 10;
   description = "Endpoint is busy";
   httpStatus = 503;
-  // Service Unavailable
-};
-var HyperAPIConfirmationError = class extends HyperAPIError {
+}
+
+class HyperAPIConfirmationError extends HyperAPIError {
   code = 11;
   description = "Confirmation required";
   httpStatus = 409;
-  // Conflict
-};
-var HyperAPIOTPError = class extends HyperAPIError {
+}
+
+class HyperAPIOTPError extends HyperAPIError {
   code = 12;
   description = "One-time password required";
   httpStatus = 401;
-  // Unauthorized
-};
-var HyperAPIMaintenanceError = class extends HyperAPIError {
+}
+
+class HyperAPIMaintenanceError extends HyperAPIError {
   code = 13;
   description = "Endpoint is in maintenance mode";
   httpStatus = 503;
-  // Service Unavailable
-};
+}
 
 // dist/esm/router.js
 var import_itty_router = require("itty-router");
 var import_node_fs = require("node:fs");
-var import_node_path = __toESM(require("node:path"), 1);
+var import_node_path = __toESM(require("node:path"));
 function createRouter(path) {
-  const router = (0, import_itty_router.IttyRouter)();
+  const router = import_itty_router.IttyRouter();
   scanDirectory(router, path);
   return router;
 }
@@ -186,18 +188,14 @@ var REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
 var REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
 var REGEXP_PATH_SLUG = /\[(\w+)]/g;
 function scanDirectory(router, path, regexp_parts = [""]) {
-  const result = (0, import_node_fs.readdirSync)(path, {
+  const result = import_node_fs.readdirSync(path, {
     withFileTypes: true
   });
   const routes = {
     0: [],
-    // routes with no method and no slug
     1: [],
-    // routes with method and no slug
     2: [],
-    // routes with no method and slug
     3: []
-    // routes with method and slug
   };
   for (const entry of result) {
     const entry_path = import_node_path.default.join(path, entry.name);
@@ -245,7 +243,6 @@ function scanDirectory(router, path, regexp_parts = [""]) {
     });
   }
 }
-
 // dist/esm/utils/methods.js
 function isHyperApiMethod(method) {
   return method === "DELETE" || method === "GET" || method === "HEAD" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNKNOWN";
@@ -253,15 +250,10 @@ function isHyperApiMethod(method) {
 
 // dist/esm/main.js
 var ENTRYPOINT_PATH = import_node_path2.default.dirname(process.argv[1]);
-var HyperAPI = class {
+
+class HyperAPI {
   router;
   driver;
-  /**
-   * Creates a HyperAPI instance.
-   * @param options The options.
-   * @param options.driver The driver.
-   * @param [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
-   */
   constructor({ driver, root = import_node_path2.default.join(ENTRYPOINT_PATH, "hyper-api") }) {
     this.driver = driver;
     this.router = createRouter(root);
@@ -281,35 +273,19 @@ var HyperAPI = class {
     });
   }
   handlers = {
-    transformer: void 0,
+    transformer: undefined,
     module: [],
     response: []
   };
-  /**
-   * Use this hook add properties to the request before it is send to the API module.
-   *
-   * This hook can be set only once.
-   * @param transformer The callback function.
-   */
   setTransformer(transformer) {
     if (this.handlers.transformer) {
       throw new Error("Transformer has already been set.");
     }
     this.handlers.transformer = transformer;
   }
-  /**
-   * Adds a hook to be called when the API module is imported.
-   * @param callback -
-   */
   onModule(callback) {
     this.handlers.module.push(callback);
   }
-  /**
-   * Adds a hook to be called right before the response is sent back.
-   *
-   * This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
-   * @param callback -
-   */
   onResponse(callback) {
     this.handlers.response.push(callback);
   }
@@ -325,7 +301,7 @@ var HyperAPI = class {
         return [
           request,
           module_,
-          new HyperAPIUnknownMethodError()
+          new HyperAPIUnknownMethodError
         ];
       }
       driver_request.args = {
@@ -358,33 +334,14 @@ var HyperAPI = class {
       return [
         request,
         module_,
-        new HyperAPIInternalError()
+        new HyperAPIInternalError
       ];
     }
     throw new Error("Unreachable");
   }
-  /** Destroys the HyperAPI instance. */
   destroy() {
-    this.handlers.transformer = void 0;
+    this.handlers.transformer = undefined;
     this.handlers.module.splice(0);
     this.handlers.response.splice(0);
   }
-};
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  HyperAPI,
-  HyperAPIAuthorizationError,
-  HyperAPIBusyError,
-  HyperAPICaptchaError,
-  HyperAPIConfirmationError,
-  HyperAPIError,
-  HyperAPIForbiddenError,
-  HyperAPIInternalError,
-  HyperAPIInvalidParametersError,
-  HyperAPIMaintenanceError,
-  HyperAPIOTPError,
-  HyperAPIObjectsLimitError,
-  HyperAPIRateLimitError,
-  HyperAPIUnknownMethodError,
-  isHyperApiMethod
-});
+}
