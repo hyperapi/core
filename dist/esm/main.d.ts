@@ -44,3 +44,4 @@ export { HyperAPIError } from './error.js';
 export type { HyperAPIModule, InferModule, } from './module.js';
 export type { HyperAPIRequest, HyperAPIRequestArgs, } from './request.js';
 export type { HyperAPIResponse } from './response.js';
+export { isHyperApiMethod, type HyperAPIMethod, } from './utils/methods.js';

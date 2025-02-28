@@ -1,5 +1,5 @@
 import { type IRequest, type IttyRouterType } from 'itty-router';
-import { HTTPMethod } from './utils/types.js';
+import { HyperAPIMethod } from './utils/methods.js';
 /**
  * Creates new IttyRouter from filesystem.
  * @param path The path to scan.
@@ -17,5 +17,5 @@ interface RouterResponse {
  * @param path The path to fetch data from.
  * @returns The response.
  */
-export declare function useRouter(router: IttyRouterType<IRequest, unknown[], unknown>, method: HTTPMethod, path: string): Promise<RouterResponse | undefined>;
+export declare function useRouter(router: IttyRouterType<IRequest, unknown[], unknown>, method: HyperAPIMethod, path: string): Promise<RouterResponse | undefined>;
 export {};

@@ -43,7 +43,8 @@ __export(main_exports, {
   HyperAPIOTPError: () => HyperAPIOTPError,
   HyperAPIObjectsLimitError: () => HyperAPIObjectsLimitError,
   HyperAPIRateLimitError: () => HyperAPIRateLimitError,
-  HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError
+  HyperAPIUnknownMethodError: () => HyperAPIUnknownMethodError,
+  isHyperApiMethod: () => isHyperApiMethod
 });
 module.exports = __toCommonJS(main_exports);
 var import_node_path2 = __toESM(require("node:path"), 1);
@@ -245,6 +246,11 @@ function scanDirectory(router, path, regexp_parts = [""]) {
   }
 }
 
+// dist/esm/utils/methods.js
+function isHyperApiMethod(method) {
+  return method === "DELETE" || method === "GET" || method === "HEAD" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNKNOWN";
+}
+
 // dist/esm/main.js
 var ENTRYPOINT_PATH = import_node_path2.default.dirname(process.argv[1]);
 var HyperAPI = class {
@@ -379,5 +385,6 @@ var HyperAPI = class {
   HyperAPIOTPError,
   HyperAPIObjectsLimitError,
   HyperAPIRateLimitError,
-  HyperAPIUnknownMethodError
+  HyperAPIUnknownMethodError,
+  isHyperApiMethod
 });
