@@ -47,6 +47,7 @@ export function useRouter(
 }
 
 const REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
+const REGEXP_TEST_FILE_EXTENSION = /\.test\.(js|mjs|cjs|ts)$/;
 const REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
 const REGEXP_PATH_SLUG = /\[(\w+)]/g;
 
@@ -89,7 +90,10 @@ function scanDirectory(
 
 		if (entry.isFile()) {
 			let file_name = entry.name;
-			if (REGEXP_FILE_EXTENSION.test(file_name)) {
+			if (
+				REGEXP_FILE_EXTENSION.test(file_name)
+				&& REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true
+			) {
 				file_name = file_name.replace(
 					REGEXP_FILE_EXTENSION,
 					'',

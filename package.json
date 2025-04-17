@@ -33,8 +33,8 @@
 		"build:cjs": "bun build dist/esm/main.js --platform=node --format=cjs --packages=external --outfile=dist/main.cjs",
 		"# build:cjs": "bunx esbuild --bundle --platform=node --format=cjs --packages=external --outfile=dist/main.cjs dist/esm/main.js",
 		"build:ts": "rm -r dist/esm ; tsc",
+		"check": "bun run build && bun run lint && bun run test",
 		"lint": "eslint . && tsc --skipLibCheck --noemit",
-		"publish:npm": "bun run build && bun run lint && bun run test && npm publish",
 		"test": "npm run test:vitest && bun test --coverage src/ test/",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},

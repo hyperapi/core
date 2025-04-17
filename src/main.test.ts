@@ -15,7 +15,7 @@ afterAll(() => {
 
 describe('routing', () => {
 	describe('methods', () => {
-		test('ALL', async () => {
+		test('ALL with GET', async () => {
 			const result = await driver.trigger(
 				'GET',
 				'echo',
@@ -27,7 +27,31 @@ describe('routing', () => {
 			expect(result).toStrictEqual([
 				true,
 				{
-					method: 'ALL',
+					method: {
+						expected: 'ALL',
+						received: 'GET',
+					},
+					message: 'Hello, world!',
+				},
+			]);
+		});
+
+		test('ALL with DELETE', async () => {
+			const result = await driver.trigger(
+				'DELETE',
+				'echo',
+				{
+					name: 'world',
+				},
+			);
+
+			expect(result).toStrictEqual([
+				true,
+				{
+					method: {
+						expected: 'ALL',
+						received: 'DELETE',
+					},
 					message: 'Hello, world!',
 				},
 			]);
@@ -45,7 +69,10 @@ describe('routing', () => {
 			expect(result).toStrictEqual([
 				true,
 				{
-					method: 'POST',
+					method: {
+						expected: 'POST',
+						received: 'POST',
+					},
 					message: 'Hello, deadbeef!',
 				},
 			]);

@@ -1,10 +1,10 @@
+export type HyperAPIErrorData = Record<string, unknown> | undefined;
 interface HyperAPIErrorResponse {
     code: number;
     description?: string;
-    data?: Record<string, unknown>;
+    data?: HyperAPIErrorData;
 }
-export type ErrorData = Record<string, unknown> | undefined;
-export declare class HyperAPIError<D extends Record<string, unknown> | undefined> extends Error {
+export declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Error {
     /** The error code. */
     readonly code: number;
     /** The error description. */

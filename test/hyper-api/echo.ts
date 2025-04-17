@@ -6,7 +6,10 @@ import { type LocalRequest } from '../setup.js';
 
 export default function (request: LocalRequest<ReturnType<typeof argsValidator>>): HyperAPIResponse {
 	return {
-		method: 'ALL',
+		method: {
+			expected: 'ALL',
+			received: request.method,
+		},
 		message: `Hello, ${request.args.name}!`,
 	};
 }

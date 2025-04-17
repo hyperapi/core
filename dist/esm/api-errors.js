@@ -59,3 +59,8 @@ export class HyperAPIMaintenanceError extends HyperAPIError {
     description = 'Endpoint is in maintenance mode';
     httpStatus = 503; // Service Unavailable
 }
+export class HyperAPIMethodNotAllowedError extends HyperAPIError {
+    code = 14;
+    description = 'HTTP method not allowed';
+    httpStatus = 405; // Method Not Allowed
+}

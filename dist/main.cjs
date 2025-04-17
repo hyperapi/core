@@ -47,6 +47,7 @@ __export(exports_main, {
   HyperAPIRateLimitError: () => HyperAPIRateLimitError,
   HyperAPIObjectsLimitError: () => HyperAPIObjectsLimitError,
   HyperAPIOTPError: () => HyperAPIOTPError,
+  HyperAPIMethodNotAllowedError: () => HyperAPIMethodNotAllowedError,
   HyperAPIMaintenanceError: () => HyperAPIMaintenanceError,
   HyperAPIInvalidParametersError: () => HyperAPIInvalidParametersError,
   HyperAPIInternalError: () => HyperAPIInternalError,
@@ -169,6 +170,12 @@ class HyperAPIMaintenanceError extends HyperAPIError {
   httpStatus = 503;
 }
 
+class HyperAPIMethodNotAllowedError extends HyperAPIError {
+  code = 14;
+  description = "HTTP method not allowed";
+  httpStatus = 405;
+}
+
 // dist/esm/router.js
 var import_itty_router = require("itty-router");
 var import_node_fs = require("node:fs");
@@ -185,6 +192,7 @@ function useRouter(router, method, path) {
   });
 }
 var REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
+var REGEXP_TEST_FILE_EXTENSION = /\.test\.(js|mjs|cjs|ts)$/;
 var REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
 var REGEXP_PATH_SLUG = /\[(\w+)]/g;
 function scanDirectory(router, path, regexp_parts = [""]) {
@@ -201,7 +209,7 @@ function scanDirectory(router, path, regexp_parts = [""]) {
     const entry_path = import_node_path.default.join(path, entry.name);
     if (entry.isFile()) {
       let file_name = entry.name;
-      if (REGEXP_FILE_EXTENSION.test(file_name)) {
+      if (REGEXP_FILE_EXTENSION.test(file_name) && REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true) {
         file_name = file_name.replace(REGEXP_FILE_EXTENSION, "");
         let method = "all";
         const method_match = file_name.match(REGEXP_HTTP_METHOD);
@@ -298,11 +306,7 @@ class HyperAPI {
       }
       const router_response = await useRouter(this.router, driver_request.method, driver_request.path);
       if (!router_response) {
-        return [
-          request,
-          module_,
-          new HyperAPIUnknownMethodError
-        ];
+        throw new HyperAPIUnknownMethodError;
       }
       driver_request.args = {
         ...driver_request.args,
@@ -311,7 +315,12 @@ class HyperAPI {
       request = this.handlers.transformer ? await this.handlers.transformer(driver_request) : driver_request;
       module_ = await import(router_response.module_path);
       if (module_.argsValidator) {
-        request.args = module_.argsValidator(request.args);
+        try {
+          request.args = module_.argsValidator(request.args);
+        } catch (error) {
+          console.error(error);
+          throw new HyperAPIInvalidParametersError;
+        }
       }
       for (const hook of this.handlers.module) {
         await hook(request, module_);

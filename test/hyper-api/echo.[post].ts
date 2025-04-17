@@ -12,7 +12,10 @@ type Module = InferModule<typeof hyperApi>;
 
 export default function (request: HyperAPIRequest<ReturnType<typeof argsValidator>>): HyperAPIResponse {
 	return {
-		method: 'POST',
+		method: {
+			expected: 'POST',
+			received: request.method,
+		},
 		message: `Hello, ${request.args.name}!`,
 	};
 }

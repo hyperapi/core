@@ -1,5 +1,5 @@
 import nodePath from 'node:path';
-import { HyperAPIInternalError, HyperAPIUnknownMethodError, } from './api-errors.js';
+import { HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIUnknownMethodError, } from './api-errors.js';
 import { HyperAPIError } from './error.js';
 import { createRouter, useRouter, } from './router.js';
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
@@ -76,11 +76,8 @@ export class HyperAPI {
             }
             const router_response = await useRouter(this.router, driver_request.method, driver_request.path);
             if (!router_response) {
-                return [
-                    request,
-                    module_,
-                    new HyperAPIUnknownMethodError(),
-                ];
+                // TODO throw HyperAPIMethodNotAllowedError when path exists but HTTP method does not match
+                throw new HyperAPIUnknownMethodError();
             }
             driver_request.args = {
                 ...driver_request.args,
@@ -93,7 +90,14 @@ export class HyperAPI {
             // IDEA: "onBeforeModule" hook?
             module_ = (await import(router_response.module_path));
             if (module_.argsValidator) {
-                request.args = module_.argsValidator(request.args);
+                try {
+                    request.args = module_.argsValidator(request.args);
+                }
+                catch (error) {
+                    // eslint-disable-next-line no-console
+                    console.error(error);
+                    throw new HyperAPIInvalidParametersError();
+                }
             }
             for (const hook of this.handlers.module) {
                 // eslint-disable-next-line no-await-in-loop

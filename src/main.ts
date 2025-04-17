@@ -1,6 +1,7 @@
-import nodePath                 from 'node:path';
+import nodePath from 'node:path';
 import {
 	HyperAPIInternalError,
+	HyperAPIInvalidParametersError,
 	HyperAPIUnknownMethodError,
 } from './api-errors.js';
 import type {
@@ -136,11 +137,8 @@ export class HyperAPI<
 			);
 
 			if (!router_response) {
-				return [
-					request,
-					module_,
-					new HyperAPIUnknownMethodError(),
-				];
+				// TODO throw HyperAPIMethodNotAllowedError when path exists but HTTP method does not match
+				throw new HyperAPIUnknownMethodError();
 			}
 
 			driver_request.args = {
@@ -157,7 +155,15 @@ export class HyperAPI<
 
 			module_ = (await import(router_response.module_path)) as M;
 			if (module_.argsValidator) {
-				request.args = module_.argsValidator(request.args);
+				try {
+					request.args = module_.argsValidator(request.args);
+				}
+				catch (error) {
+					// eslint-disable-next-line no-console
+					console.error(error);
+
+					throw new HyperAPIInvalidParametersError();
+				}
 			}
 
 			for (const hook of this.handlers.module) {
@@ -215,8 +221,7 @@ export type {
 export { HyperAPIError } from './error.js';
 export type {
 	HyperAPIModule,
-	// HyperAPIModuleRequest,
-	// HyperAPIModuleResponse,
+	HyperAPIModuleResponse,
 	InferModule,
 } from './module.js';
 export type {

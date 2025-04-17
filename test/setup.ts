@@ -7,10 +7,8 @@ import {
 	HyperAPIRequest,
 	HyperAPIRequestArgs,
 } from '../src/main.js';
-import type {
-	EmptyObject,
-	HTTPMethod,
-} from '../src/utils/types.js';
+import type { HyperAPIMethod } from '../src/utils/methods.js';
+import type { EmptyObject } from '../src/utils/types.js';
 
 interface DriverRequest<A extends HyperAPIRequestArgs = EmptyObject> extends HyperAPIRequest<A> {
 	foo: string;
@@ -28,10 +26,22 @@ class HyperAPITestDriver implements HyperAPIDriver<DriverRequest> {
 	}
 
 	async trigger(
-		method: HTTPMethod,
+		method: HyperAPIMethod,
+		path: string,
+		args?: Record<string, unknown>,
+	): Promise<[ boolean, unknown ]>;
+	async trigger(
+		method: HyperAPIMethod,
+		path: string,
+		args: Record<string, unknown>,
+		use_http: true,
+	): Promise<[ boolean, unknown, { status: number | undefined } ]>;
+	async trigger(
+		method: HyperAPIMethod,
 		path: string,
 		args: Record<string, unknown> = {},
-	): Promise<[ boolean, unknown ]> {
+		use_http: boolean = false,
+	): Promise<[ boolean, unknown ] | [ boolean, unknown, { status: number | undefined }]> {
 		if (!this.handler) {
 			throw new Error('No handler available.');
 		}
@@ -44,10 +54,18 @@ class HyperAPITestDriver implements HyperAPIDriver<DriverRequest> {
 		});
 
 		if (response instanceof HyperAPIError) {
-			return [
-				false,
-				response.getResponse(),
-			];
+			return use_http === true
+				? [
+					false,
+					response.getResponse(),
+					{
+						status: response.httpStatus,
+					},
+				]
+				: [
+					false,
+					response.getResponse(),
+				];
 		}
 
 		return [
