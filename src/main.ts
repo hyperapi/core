@@ -218,7 +218,10 @@ export type {
 	HyperAPIDriver,
 	HyperAPIDriverHandler,
 } from './driver.js';
-export { HyperAPIError } from './error.js';
+export {
+	type HyperAPIErrorData,
+	HyperAPIError,
+} from './error.js';
 export type {
 	HyperAPIModule,
 	HyperAPIModuleResponse,

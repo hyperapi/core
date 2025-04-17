@@ -40,7 +40,7 @@ export declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R exten
 }
 export * from './api-errors.js';
 export type { HyperAPIDriver, HyperAPIDriverHandler, } from './driver.js';
-export { HyperAPIError } from './error.js';
+export { type HyperAPIErrorData, HyperAPIError, } from './error.js';
 export type { HyperAPIModule, HyperAPIModuleResponse, InferModule, } from './module.js';
 export type { HyperAPIRequest, HyperAPIRequestArgs, } from './request.js';
 export type { HyperAPIResponse } from './response.js';

@@ -138,5 +138,5 @@ export class HyperAPI {
     }
 }
 export * from './api-errors.js';
-export { HyperAPIError } from './error.js';
+export { HyperAPIError, } from './error.js';
 export { isHyperApiMethod, } from './utils/methods.js';
