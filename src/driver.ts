@@ -1,12 +1,10 @@
+import type { Promisable } from 'type-fest';
 import type {
 	HyperAPIRequest,
 } from './request.js';
 import type { HyperAPIResponse } from './response.js';
-import {
-	MaybePromise,
-} from './utils/types.js';
 
-export type HyperAPIDriverHandler<R extends HyperAPIRequest = HyperAPIRequest> = (request: R) => MaybePromise<HyperAPIResponse>;
+export type HyperAPIDriverHandler<R extends HyperAPIRequest = HyperAPIRequest> = (request: R) => Promisable<HyperAPIResponse>;
 
 export interface HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> {
 	start(handler: HyperAPIDriverHandler<R>): void;

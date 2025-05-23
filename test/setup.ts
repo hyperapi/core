@@ -1,14 +1,14 @@
+import type { EmptyObject } from 'type-fest';
 import {
+	type HyperAPIDriver,
+	type HyperAPIDriverHandler,
+	type HyperAPIModule,
+	type HyperAPIRequest,
+	type HyperAPIRequestArgs,
 	HyperAPI,
-	HyperAPIDriver,
-	HyperAPIDriverHandler,
 	HyperAPIError,
-	HyperAPIModule,
-	HyperAPIRequest,
-	HyperAPIRequestArgs,
 } from '../src/main.js';
 import type { HyperAPIMethod } from '../src/utils/methods.js';
-import type { EmptyObject } from '../src/utils/types.js';
 
 interface DriverRequest<A extends HyperAPIRequestArgs = EmptyObject> extends HyperAPIRequest<A> {
 	foo: string;
@@ -127,7 +127,7 @@ hyperApi.onModule((request, module) => {
 	} = module;
 });
 
-hyperApi.onResponse((request, module) => {
+hyperApi.onResponse((request, module, response) => {
 	const {
 		foo,
 		bar,
@@ -138,6 +138,8 @@ hyperApi.onResponse((request, module) => {
 		argsValidator,
 		auth,
 	} = module;
+
+	// response;
 });
 
 /* eslint-enable @typescript-eslint/no-unused-vars */

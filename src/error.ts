@@ -30,7 +30,7 @@ export class HyperAPIError<
 		}
 	}
 
-	get message() {
+	override get message() {
 		return `${this.description} (code ${this.code}).`;
 	}
 
@@ -38,7 +38,7 @@ export class HyperAPIError<
 	 * Creates response object.
 	 * @returns -
 	 */
-	getResponse() {
+	getResponse(): HyperAPIErrorResponse {
 		const response: HyperAPIErrorResponse = {
 			code: this.code,
 		};

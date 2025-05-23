@@ -1,4 +1,5 @@
 import nodePath from 'node:path';
+import type { Promisable } from 'type-fest';
 import {
 	HyperAPIInternalError,
 	HyperAPIInvalidParametersError,
@@ -16,19 +17,18 @@ import {
 	createRouter,
 	useRouter,
 } from './router.js';
-import type { MaybePromise } from './utils/types.js';
 
 interface HyperAPIHandlers<
 	D extends HyperAPIDriver,
 	R extends InferDriverRequest<D>,
 	M extends HyperAPIModule<R>,
 > {
-	transformer: ((driver_request: Readonly<InferDriverRequest<D>>) => MaybePromise<R>) | void;
-	module: ((request: Readonly<R>, module_: M) => MaybePromise<void>)[];
-	response: ((request: R, module_: M, response: HyperAPIResponse) => MaybePromise<void>)[];
+	transformer: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<R>) | void;
+	module: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
+	response: ((request: R, module_: M, response: HyperAPIResponse) => Promisable<void>)[];
 }
 
-const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
+const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]!);
 
 export class HyperAPI<
 	D extends HyperAPIDriver<HyperAPIRequest>,
@@ -46,10 +46,7 @@ export class HyperAPI<
 	 */
 	constructor({
 		driver,
-		root = nodePath.join(
-			ENTRYPOINT_PATH,
-			'hyper-api',
-		),
+		root = nodePath.join(ENTRYPOINT_PATH, 'hyper-api'),
 	}: {
 		driver: D,
 		root?: string,
@@ -95,7 +92,7 @@ export class HyperAPI<
 	 * This hook can be set only once.
 	 * @param transformer The callback function.
 	 */
-	setTransformer(transformer: typeof this.handlers['transformer']) {
+	setTransformer(transformer: HyperAPIHandlers<D, R, M>['transformer']): void {
 		if (this.handlers.transformer) {
 			throw new Error('Transformer has already been set.');
 		}
@@ -107,7 +104,7 @@ export class HyperAPI<
 	 * Adds a hook to be called when the API module is imported.
 	 * @param callback -
 	 */
-	onModule(callback: typeof this.handlers['module'][number]) {
+	onModule(callback: HyperAPIHandlers<D, R, M>['module'][number]): void {
 		this.handlers.module.push(callback);
 	}
 
@@ -117,7 +114,7 @@ export class HyperAPI<
 	 * This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
 	 * @param callback -
 	 */
-	onResponse(callback: typeof this.handlers['response'][number]) {
+	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): void {
 		this.handlers.response.push(callback);
 	}
 
@@ -201,12 +198,10 @@ export class HyperAPI<
 				new HyperAPIInternalError(),
 			];
 		}
-
-		throw new Error('Unreachable');
 	}
 
 	/** Destroys the HyperAPI instance. */
-	destroy() {
+	destroy(): void {
 		this.handlers.transformer = undefined;
 		this.handlers.module.splice(0);
 		this.handlers.response.splice(0);
@@ -233,6 +228,6 @@ export type {
 } from './request.js';
 export type { HyperAPIResponse } from './response.js';
 export {
-	isHyperApiMethod,
 	type HyperAPIMethod,
+	isHyperApiMethod,
 } from './utils/methods.js';

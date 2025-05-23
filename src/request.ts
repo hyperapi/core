@@ -1,9 +1,5 @@
-import type {
-	HyperAPIMethod,
-} from './utils/methods.js';
-import type {
-	EmptyObject,
-} from './utils/types.js';
+import type { EmptyObject } from 'type-fest';
+import type { HyperAPIMethod } from './utils/methods.js';
 
 export type HyperAPIRequestArgs = Record<string, unknown>;
 

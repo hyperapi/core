@@ -1,29 +1,6 @@
-//#region rolldown:runtime
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __copyProps = (to, from, except, desc) => {
-	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
-		key = keys[i];
-		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
-			get: ((k) => from[k]).bind(null, key),
-			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-		});
-	}
-	return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
-	value: mod,
-	enumerable: true
-}) : target, mod));
-
-//#endregion
-const node_path = __toESM(require("node:path"));
-const itty_router = __toESM(require("itty-router"));
-const node_fs = __toESM(require("node:fs"));
+import nodePath from "node:path";
+import { IttyRouter } from "itty-router";
+import { readdirSync } from "node:fs";
 
 //#region src/utils/is-record.ts
 /**
@@ -143,7 +120,7 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 * @returns The new IttyRouter.
 */
 function createRouter(path) {
-	const router = (0, itty_router.IttyRouter)();
+	const router = IttyRouter();
 	scanDirectory(router, path);
 	return router;
 }
@@ -171,7 +148,7 @@ const REGEXP_PATH_SLUG = /\[(\w+)]/g;
 * @param [regexp_parts] The parts of the regular expression.
 */
 function scanDirectory(router, path, regexp_parts = [""]) {
-	const result = (0, node_fs.readdirSync)(path, { withFileTypes: true });
+	const result = readdirSync(path, { withFileTypes: true });
 	const routes = {
 		0: [],
 		1: [],
@@ -179,7 +156,7 @@ function scanDirectory(router, path, regexp_parts = [""]) {
 		3: []
 	};
 	for (const entry of result) {
-		const entry_path = node_path.default.join(path, entry.name);
+		const entry_path = nodePath.join(path, entry.name);
 		if (entry.isFile()) {
 			let file_name = entry.name;
 			if (REGEXP_FILE_EXTENSION.test(file_name) && REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true) {
@@ -195,7 +172,7 @@ function scanDirectory(router, path, regexp_parts = [""]) {
 				file_name = file_name.replaceAll(REGEXP_PATH_SLUG, ":$1");
 				routes[has_method | has_slug]?.push({
 					method,
-					path: [...regexp_parts, file_name].join(node_path.default.sep),
+					path: [...regexp_parts, file_name].join(nodePath.sep),
 					module_path: entry_path
 				});
 			}
@@ -228,7 +205,7 @@ function isHyperApiMethod(method) {
 
 //#endregion
 //#region src/main.ts
-const ENTRYPOINT_PATH = node_path.default.dirname(process.argv[1]);
+const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
 var HyperAPI = class {
 	router;
 	driver;
@@ -238,7 +215,7 @@ var HyperAPI = class {
 	* @param options.driver The driver.
 	* @param [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
 	*/
-	constructor({ driver, root = node_path.default.join(ENTRYPOINT_PATH, "hyper-api") }) {
+	constructor({ driver, root = nodePath.join(ENTRYPOINT_PATH, "hyper-api") }) {
 		this.driver = driver;
 		this.router = createRouter(root);
 		this.driver.start(async (driver_request) => {
@@ -332,19 +309,4 @@ var HyperAPI = class {
 };
 
 //#endregion
-exports.HyperAPI = HyperAPI;
-exports.HyperAPIAuthorizationError = HyperAPIAuthorizationError;
-exports.HyperAPIBusyError = HyperAPIBusyError;
-exports.HyperAPICaptchaError = HyperAPICaptchaError;
-exports.HyperAPIConfirmationError = HyperAPIConfirmationError;
-exports.HyperAPIError = HyperAPIError;
-exports.HyperAPIForbiddenError = HyperAPIForbiddenError;
-exports.HyperAPIInternalError = HyperAPIInternalError;
-exports.HyperAPIInvalidParametersError = HyperAPIInvalidParametersError;
-exports.HyperAPIMaintenanceError = HyperAPIMaintenanceError;
-exports.HyperAPIMethodNotAllowedError = HyperAPIMethodNotAllowedError;
-exports.HyperAPIOTPError = HyperAPIOTPError;
-exports.HyperAPIObjectsLimitError = HyperAPIObjectsLimitError;
-exports.HyperAPIRateLimitError = HyperAPIRateLimitError;
-exports.HyperAPIUnknownMethodError = HyperAPIUnknownMethodError;
-exports.isHyperApiMethod = isHyperApiMethod;
+export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError, isHyperApiMethod };

@@ -7,14 +7,15 @@ import {
 } from 'itty-router';
 import { readdirSync } from 'node:fs';
 import nodePath from 'node:path';
-import { HyperAPIMethod } from './utils/methods.js';
+import type { HyperAPIMethod } from './utils/methods.js';
 
 /**
  * Creates new IttyRouter from filesystem.
  * @param path The path to scan.
  * @returns The new IttyRouter.
  */
-export function createRouter(path: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function createRouter(path: string): IttyRouterType<IRequest, any[], any> {
 	// eslint-disable-next-line new-cap
 	const router = IttyRouter();
 
@@ -75,7 +76,7 @@ function scanDirectory(
 		},
 	);
 
-	const routes: Record<string, Route[]> = {
+	const routes: Record<number, Route[]> = {
 		0: [], // routes with no method and no slug
 		1: [], // routes with method and no slug
 		2: [], // routes with no method and slug
@@ -127,7 +128,7 @@ function scanDirectory(
 				// );
 
 				// eslint-disable-next-line no-bitwise
-				routes[has_method | has_slug].push({
+				routes[has_method | has_slug]?.push({
 					method,
 					path: [
 						...regexp_parts,
@@ -154,10 +155,11 @@ function scanDirectory(
 
 	for (
 		const route of [
-			...routes[1],
-			...routes[3],
-			...routes[0],
-			...routes[2],
+			// suppress indexed access to fail
+			...routes[1]!,
+			...routes[3]!,
+			...routes[0]!,
+			...routes[2]!,
 		]
 	) {
 		router[route.method](
