@@ -1,7 +1,7 @@
 # HyperAPI Core
 
 [![npm version](https://img.shields.io/npm/v/@hyperapi/core.svg)](https://www.npmjs.com/package/@hyperapi/core)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![license](https://img.shields.io/npm/l/@hyperapi/core.svg)](https://github.com/hyperapi/core/blob/main/LICENSE)
 
 A powerful, type-safe foundation framework for building APIs with minimal boilerplate. HyperAPI Core provides routing, standardized API method modules, validation, and hooks, while leaving the connection to the outside world to be handled by drivers.
 
@@ -17,9 +17,9 @@ A powerful, type-safe foundation framework for building APIs with minimal boiler
 
 ```bash
 bun i @hyperapi/core
-# with pnpm
+# or with pnpm
 pnpm add @hyperapi/core
-# with npm
+# or with npm
 npm install @hyperapi/core
 ```
 
@@ -107,7 +107,6 @@ HyperAPI Core processes requests through a well-defined sequence of steps:
 6. If `argsValidator` is defined, *Core* calls it to validate the request arguments. Returned value is set as new request arguments value
    - If `argsValidator` throws, a [`HyperAPIInvalidParametersError`](src/api-errors.ts#L12) is thrown
 7. *Core* calls registered `setRequestTransformer` hook to update request with developer-defined transformations.
-   - This is a single point where developer can modify the request *type-safely* before it reaches the module
 8. *Core* executes all registered `onBeforeExecute` hooks with request and module
 9. *Core* calls the module's `export default function` with the request object
 10. *Core* executes all registered `onResponse` hooks with request it received from the *Driver*, modified request, module, and response received from the module
@@ -135,9 +134,9 @@ In general, you define `argsValidator` function that throws if validation fails 
 
 ## Hooks and Middleware
 
-HyperAPI provides several hooks for extending functionality at different stages of the request pipeline:
+HyperAPI provides several hooks for extending functionality at different stages of the request pipeline. Every type of hook executed in parallel, so be careful when changing request object there and avoid race conditions.
 
-### Process request before routing
+### `beforeRouter` hook
 
 Executed after path normalization but before route matching. Use for logging, request inspection, or early validation.
 
@@ -152,9 +151,11 @@ hyperApiCore.onBeforeRouter((driver_request) => {
 });
 ```
 
-### Transform request with module context
+### `requestTransformer` hook
 
 Executed after module loading and argument validation, but before module execution. Can access both driver request and module.
+
+This hook can be set only once.
 
 > [!TIP]
 > This is the only hook that can change the request type, allowing you to add custom properties or modify existing ones.
@@ -172,9 +173,9 @@ hyperApiCore.setRequestTransformer((driver_request, module) => {
 });
 ```
 
-### Execute code before module function
+### `beforeExecute` hook
 
-Last hook before the module's default export function runs.
+Executed before the module's default export function runs.
 
 ```typescript
 hyperApiCore.onBeforeExecute((request, module) => {
@@ -186,9 +187,9 @@ hyperApiCore.onBeforeExecute((request, module) => {
 });
 ```
 
-### Process response before delivery
+### `onResponse` hook
 
-Final hook executed before returning response to driver. Receives all context from the request lifecycle.
+Executed before returning response to driver. Receives all context from the request lifecycle.
 
 This hook has access to both the original driver request and the transformed request. Also, errors thrown from this hook will not change the response.
 
@@ -205,7 +206,7 @@ hyperApiCore.onResponse((driver_request, request, module, response) => {
 
 ## Error Handling
 
-HyperAPI provides built-in error type [`HyperAPIError`](src/error.ts) for standardized error handling. If you want to return an error from your module, you can throw an instance of `HyperAPIError` or its subclasses. This will automatically convert it to a proper response by the driver.
+HyperAPI provides built-in error type [`HyperAPIError`](src/error.ts) for standardized error handling. If you want to return an error from your module, you can throw an instance of `HyperAPIError` or its subclasses.
 
 ```typescript
 import { HyperAPIError } from '@hyperapi/core';
