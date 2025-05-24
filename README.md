@@ -84,36 +84,10 @@ import { SomeHttpDriver } from '@hyperapi/some-http-driver'; // functional drive
 const driver = new SomeHttpDriver({ port: 3000 });
 
 // Initialize HyperAPI with the driver
-const api = new HyperAPI({
+const hyperApiCore = new HyperAPI({
   driver,
   // Optional: custom root path for API methods
   // root: path.join(import.meta.dir, 'api')
-});
-
-// Add middleware hooks
-api.onBeforeRouter((driver_request) => {
-  console.log(`Incoming request: ${driver_request.method} ${driver_request.path}`);
-});
-
-api.setTransformer((driver_request, module) => {
-  return {
-    ...driver_request,
-    user: getCurrentUser(driver_request),
-    startTime: Date.now()
-  };
-});
-
-api.onBeforeExecute((request, module) => {
-  // Auth check right before execution
-  if (module.auth && !isAuthenticated(request)) {
-    throw new UnauthorizedError();
-  }
-});
-
-api.onResponse((driver_request, request, module, response) => {
-  if (request) {
-    console.log(`Completed: ${request.method} ${request.path}`);
-  }
 });
 
 console.log('API server running on http://localhost:3000');
@@ -167,7 +141,7 @@ HyperAPI provides several hooks for extending functionality at different stages 
 Executed after path normalization but before route matching. Use for logging, request inspection, or early validation.
 
 ```typescript
-api.onBeforeRouter((driver_request) => {
+hyperApiCore.onBeforeRouter((driver_request) => {
   console.log(`Incoming request: ${driver_request.method} ${driver_request.path}`);
 
   // Verify request integrity, implement rate limiting, etc.
@@ -187,7 +161,7 @@ Executed after module loading and argument validation, but before module executi
 > For example, if module exports `auth = true` property, you can validate token and add user information to the request object.
 
 ```typescript
-api.setRequestTransformer((driver_request, module) => {
+hyperApiCore.setRequestTransformer((driver_request, module) => {
   return {
     ...driver_request,
     user: module.auth
@@ -202,7 +176,7 @@ api.setRequestTransformer((driver_request, module) => {
 Last hook before the module's default export function runs.
 
 ```typescript
-api.onBeforeExecute((request, module) => {
+hyperApiCore.onBeforeExecute((request, module) => {
   // Runs after transformation, with the final request object
   // Perfect for authorization checks based on both request and module
   if (module.auth && !isAuthorized(request, module.auth)) {
@@ -218,7 +192,7 @@ Final hook executed before returning response to driver. Receives all context fr
 This hook has access to both the original driver request and the transformed request. Also, errors thrown from this hook will not change the response.
 
 ```typescript
-api.onResponse((driver_request, request, module, response) => {
+hyperApiCore.onResponse((driver_request, request, module, response) => {
   // Has access to both original driver request and transformed request
   // Useful for metrics, logging, and response modification
   if (request) {
@@ -280,7 +254,7 @@ interface MyModule extends HyperAPIModule<MyRequest> {
 }
 
 // Initialize with type parameters
-const api = new HyperAPI<
+const hyperApiCore = new HyperAPI<
   typeof myDriver,
   MyRequest,
   MyModule
