@@ -101,20 +101,28 @@ export const hyperApi = new HyperAPI<
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-hyperApi.setTransformer((request) => {
+hyperApi.onBeforeRouter((driver_request) => {
 	const {
 		foo,
 		// @ts-expect-error Accessing property that does not exist on DriverRequest
 		bar,
-	} = request;
+	} = driver_request;
+});
+
+hyperApi.setRequestTransformer((driver_request) => {
+	const {
+		foo,
+		// @ts-expect-error Accessing property that does not exist on DriverRequest
+		bar,
+	} = driver_request;
 
 	return {
-		...request,
+		...driver_request,
 		bar: 10,
 	};
 });
 
-hyperApi.onModule((request, module) => {
+hyperApi.onBeforeExecute((request, module) => {
 	const {
 		foo,
 		bar,
@@ -127,19 +135,29 @@ hyperApi.onModule((request, module) => {
 	} = module;
 });
 
-hyperApi.onResponse((request, module, response) => {
+hyperApi.onResponse((driver_request, request, module, response) => {
 	const {
 		foo,
+		// @ts-expect-error Accessing property that does not exist on DriverRequest
 		bar,
-	} = request;
+	} = driver_request;
 
-	const {
-		default: default_,
-		argsValidator,
-		auth,
-	} = module;
+	if (request) {
+		const {
+			foo,
+			bar,
+		} = request;
+	}
 
-	// response;
+	if (module) {
+		const {
+			default: default_,
+			argsValidator,
+			auth,
+		} = module;
+	}
+
+	console.log(response);
 });
 
 /* eslint-enable @typescript-eslint/no-unused-vars */

@@ -23,9 +23,10 @@ interface HyperAPIHandlers<
 	R extends InferDriverRequest<D>,
 	M extends HyperAPIModule<R>,
 > {
-	transformer: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<R>) | void;
-	module: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
-	response: ((request: R, module_: M, response: HyperAPIResponse) => Promisable<void>)[];
+	beforeRouter: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<void>)[];
+	requestTransformer: ((driver_request: Readonly<InferDriverRequest<D>>, module_: M) => Promisable<R>) | void;
+	beforeExecute: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
+	response: ((driver_request: Readonly<InferDriverRequest<D>>, request: R | null, module_: M | null, response: HyperAPIResponse) => Promisable<void>)[];
 }
 
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]!);
@@ -54,71 +55,111 @@ export class HyperAPI<
 		this.driver = driver;
 		this.router = createRouter(root);
 
-		this.driver.start(async (driver_request) => {
+		this.driver.start(async (arg0) => {
+			const driver_request = arg0 as InferDriverRequest<D>;
+
 			const [
 				request,
 				module_,
 				response,
-			] = await this.processRequest(driver_request as InferDriverRequest<D>);
+			] = await this.processRequest(driver_request);
 
-			if (request && module_) {
-				for (const hook of this.handlers.response) {
-					try {
-						// eslint-disable-next-line no-await-in-loop
-						await hook(request, module_, response);
-					}
-					catch (error) {
-						/* eslint-disable no-console */
-						console.error('Error in "response" hook:');
-						console.error(error);
-						/* eslint-enable no-console */
-					}
-				}
+			// 10. *Core* executes all registered `onResponse` hooks...
+			try {
+				await this.useHooks(
+					this.handlers.response,
+					[
+						driver_request,
+						request,
+						module_,
+						response,
+					],
+				);
+			}
+			catch (error) {
+				/* eslint-disable no-console */
+				console.error('Error in "response" hook:');
+				console.error(error);
+				/* eslint-enable no-console */
 			}
 
+			// 11. Finally, *Core* passes the response back to the *Driver*...
 			return response;
 		});
 	}
 
 	private handlers: HyperAPIHandlers<D, R, M> = {
-		transformer: undefined,
-		module: [],
+		beforeRouter: [],
+		requestTransformer: undefined,
+		beforeExecute: [],
 		response: [],
 	};
+
+	/**
+	 * Adds a hook to be called before request is matched against the file router.
+	 *
+	 * This hook can be set multiple times. Every hook is executed simultaneously.
+	 *
+	 * If error is thrown in this hook, it will abort the request processing and return an error response.
+	 * @param callback The callback function.
+	 */
+	onBeforeRouter(callback: HyperAPIHandlers<D, R, M>['beforeRouter'][number]): void {
+		this.handlers.beforeRouter.push(callback);
+	}
 
 	/**
 	 * Use this hook add properties to the request before it is send to the API module.
 	 *
 	 * This hook can be set only once.
+	 *
+	 * If error is thrown in this hook, it will abort the request processing and return an error response.
 	 * @param transformer The callback function.
 	 */
-	setTransformer(transformer: HyperAPIHandlers<D, R, M>['transformer']): void {
-		if (this.handlers.transformer) {
+	setRequestTransformer(transformer: HyperAPIHandlers<D, R, M>['requestTransformer']): void {
+		if (this.handlers.requestTransformer) {
 			throw new Error('Transformer has already been set.');
 		}
 
-		this.handlers.transformer = transformer;
+		this.handlers.requestTransformer = transformer;
 	}
 
 	/**
-	 * Adds a hook to be called when the API module is imported.
+	 * Adds a hook to be called right before the API module is executed.
+	 *
+	 * This hook can be set multiple times. Every hook is executed simultaneously.
+	 *
+	 * If error is thrown in this hook, it will abort the request processing and return an error response.
 	 * @param callback -
 	 */
-	onModule(callback: HyperAPIHandlers<D, R, M>['module'][number]): void {
-		this.handlers.module.push(callback);
+	onBeforeExecute(callback: HyperAPIHandlers<D, R, M>['beforeExecute'][number]): void {
+		this.handlers.beforeExecute.push(callback);
 	}
 
 	/**
-	 * Adds a hook to be called right before the response is sent back.
+	 * Adds a hook to be called right before the response is sent back to the driver.
 	 *
-	 * This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
+	 * This hook can be set multiple times. Every hook is executed simultaneously.
+	 *
+	 * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
 	 * @param callback -
 	 */
 	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): void {
 		this.handlers.response.push(callback);
 	}
 
+	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
+	private async useHooks<const H extends (...args: any[]) => void>(hooks: H[], args: Parameters<H>) {
+		const promises: Promisable<void>[] = [];
+		for (const hook of hooks) {
+			promises.push(hook(...args));
+		}
+
+		await Promise.all(promises);
+	}
+
 	private async processRequest(driver_request: InferDriverRequest<D>): Promise<[ R | null, M | null, HyperAPIResponse ]> {
+		// 1. *Driver* creates a request and passes it to the *Core*
+
 		let request: R | null = null;
 		let module_: M | null = null;
 
@@ -127,33 +168,36 @@ export class HyperAPI<
 				driver_request.path = `/${driver_request.path}`;
 			}
 
+			// 2. *Core* executes all registered `onBeforeRouter` hooks...
+			await this.useHooks(
+				this.handlers.beforeRouter,
+				[ driver_request ],
+			);
+
+			// 3. *Core* uses a file router...
 			const router_response = await useRouter(
 				this.router,
 				driver_request.method,
 				driver_request.path,
 			);
-
 			if (!router_response) {
 				// TODO throw HyperAPIMethodNotAllowedError when path exists but HTTP method does not match
 				throw new HyperAPIUnknownMethodError();
 			}
 
+			// 4. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
 			driver_request.args = {
 				...driver_request.args,
 				...router_response.args,
 			};
 
-			// Send request to the outside user
-			request = this.handlers.transformer
-				? await this.handlers.transformer(driver_request)
-				: driver_request as R;
-
-			// IDEA: "onBeforeModule" hook?
-
+			// 5. *Core* imports the matched module file...
 			module_ = (await import(router_response.module_path)) as M;
+
+			// 6. If `argsValidator` is defined, *Core* calls it to validate the request arguments...
 			if (module_.argsValidator) {
 				try {
-					request.args = module_.argsValidator(request.args);
+					driver_request.args = module_.argsValidator(driver_request.args);
 				}
 				catch (error) {
 					// eslint-disable-next-line no-console
@@ -163,16 +207,19 @@ export class HyperAPI<
 				}
 			}
 
-			for (const hook of this.handlers.module) {
-				// eslint-disable-next-line no-await-in-loop
-				await hook(request, module_);
-			}
+			// 7. *Core* calls registered `setRequestTransformer` hook
+			request = this.handlers.requestTransformer
+				? await this.handlers.requestTransformer(driver_request, module_)
+				: driver_request as R;
 
-			// IDEA: "onBeforeExecute" hook?
+			// 8. *Core* executes all registered `onBeforeExecute` hooks...
+			await this.useHooks(
+				this.handlers.beforeExecute,
+				[ request, module_ ],
+			);
 
+			// 9. *Core* calls the module's `export default function`...
 			const response = await module_.default(request);
-
-			// IDEA: "onExecute" hook?
 
 			return [
 				request,
@@ -202,8 +249,9 @@ export class HyperAPI<
 
 	/** Destroys the HyperAPI instance. */
 	destroy(): void {
-		this.handlers.transformer = undefined;
-		this.handlers.module.splice(0);
+		this.handlers.beforeRouter.splice(0);
+		this.handlers.requestTransformer = undefined;
+		this.handlers.beforeExecute.splice(0);
 		this.handlers.response.splice(0);
 	}
 }

@@ -142,9 +142,10 @@ declare class HyperAPIMethodNotAllowedError<D extends HyperAPIErrorData> extends
 //#endregion
 //#region src/main.d.ts
 interface HyperAPIHandlers<D extends HyperAPIDriver, R extends InferDriverRequest<D>, M extends HyperAPIModule<R>> {
-  transformer: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<R>) | void;
-  module: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
-  response: ((request: R, module_: M, response: HyperAPIResponse) => Promisable<void>)[];
+  beforeRouter: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<void>)[];
+  requestTransformer: ((driver_request: Readonly<InferDriverRequest<D>>, module_: M) => Promisable<R>) | void;
+  beforeExecute: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
+  response: ((driver_request: Readonly<InferDriverRequest<D>>, request: R | null, module_: M | null, response: HyperAPIResponse) => Promisable<void>)[];
 }
 declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends InferDriverRequest<D>, M extends HyperAPIModule<R> = HyperAPIModule<R>> {
   private router;
@@ -164,24 +165,43 @@ declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends Infe
   });
   private handlers;
   /**
+  * Adds a hook to be called before request is matched against the file router.
+  *
+  * This hook can be set multiple times. Every hook is executed simultaneously.
+  *
+  * If error is thrown in this hook, it will abort the request processing and return an error response.
+  * @param callback The callback function.
+  */
+  onBeforeRouter(callback: HyperAPIHandlers<D, R, M>["beforeRouter"][number]): void;
+  /**
   * Use this hook add properties to the request before it is send to the API module.
   *
   * This hook can be set only once.
+  *
+  * If error is thrown in this hook, it will abort the request processing and return an error response.
   * @param transformer The callback function.
   */
-  setTransformer(transformer: HyperAPIHandlers<D, R, M>["transformer"]): void;
+  setRequestTransformer(transformer: HyperAPIHandlers<D, R, M>["requestTransformer"]): void;
   /**
-  * Adds a hook to be called when the API module is imported.
+  * Adds a hook to be called right before the API module is executed.
+  *
+  * This hook can be set multiple times. Every hook is executed simultaneously.
+  *
+  * If error is thrown in this hook, it will abort the request processing and return an error response.
   * @param callback -
   */
-  onModule(callback: HyperAPIHandlers<D, R, M>["module"][number]): void;
+  onBeforeExecute(callback: HyperAPIHandlers<D, R, M>["beforeExecute"][number]): void;
   /**
-  * Adds a hook to be called right before the response is sent back.
+  * Adds a hook to be called right before the response is sent back to the driver.
   *
-  * This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
+  * This hook can be set multiple times. Every hook is executed simultaneously.
+  *
+  * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
   * @param callback -
   */
   onResponse(callback: HyperAPIHandlers<D, R, M>["response"][number]): void;
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
+  private useHooks;
   private processRequest;
   /** Destroys the HyperAPI instance. */
   destroy(): void;

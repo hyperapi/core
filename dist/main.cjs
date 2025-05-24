@@ -241,10 +241,16 @@ var HyperAPI = class {
 	constructor({ driver, root = node_path.default.join(ENTRYPOINT_PATH, "hyper-api") }) {
 		this.driver = driver;
 		this.router = createRouter(root);
-		this.driver.start(async (driver_request) => {
+		this.driver.start(async (arg0) => {
+			const driver_request = arg0;
 			const [request, module_, response] = await this.processRequest(driver_request);
-			if (request && module_) for (const hook of this.handlers.response) try {
-				await hook(request, module_, response);
+			try {
+				await this.useHooks(this.handlers.response, [
+					driver_request,
+					request,
+					module_,
+					response
+				]);
 			} catch (error) {
 				console.error("Error in \"response\" hook:");
 				console.error(error);
@@ -253,56 +259,82 @@ var HyperAPI = class {
 		});
 	}
 	handlers = {
-		transformer: void 0,
-		module: [],
+		beforeRouter: [],
+		requestTransformer: void 0,
+		beforeExecute: [],
 		response: []
 	};
+	/**
+	* Adds a hook to be called before request is matched against the file router.
+	*
+	* This hook can be set multiple times. Every hook is executed simultaneously.
+	*
+	* If error is thrown in this hook, it will abort the request processing and return an error response.
+	* @param callback The callback function.
+	*/
+	onBeforeRouter(callback) {
+		this.handlers.beforeRouter.push(callback);
+	}
 	/**
 	* Use this hook add properties to the request before it is send to the API module.
 	*
 	* This hook can be set only once.
+	*
+	* If error is thrown in this hook, it will abort the request processing and return an error response.
 	* @param transformer The callback function.
 	*/
-	setTransformer(transformer) {
-		if (this.handlers.transformer) throw new Error("Transformer has already been set.");
-		this.handlers.transformer = transformer;
+	setRequestTransformer(transformer) {
+		if (this.handlers.requestTransformer) throw new Error("Transformer has already been set.");
+		this.handlers.requestTransformer = transformer;
 	}
 	/**
-	* Adds a hook to be called when the API module is imported.
+	* Adds a hook to be called right before the API module is executed.
+	*
+	* This hook can be set multiple times. Every hook is executed simultaneously.
+	*
+	* If error is thrown in this hook, it will abort the request processing and return an error response.
 	* @param callback -
 	*/
-	onModule(callback) {
-		this.handlers.module.push(callback);
+	onBeforeExecute(callback) {
+		this.handlers.beforeExecute.push(callback);
 	}
 	/**
-	* Adds a hook to be called right before the response is sent back.
+	* Adds a hook to be called right before the response is sent back to the driver.
 	*
-	* This hook called only if the request was processed by the API module. If unknown method was requested, this hook is not called.
+	* This hook can be set multiple times. Every hook is executed simultaneously.
+	*
+	* If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
 	* @param callback -
 	*/
 	onResponse(callback) {
 		this.handlers.response.push(callback);
+	}
+	async useHooks(hooks, args) {
+		const promises = [];
+		for (const hook of hooks) promises.push(hook(...args));
+		await Promise.all(promises);
 	}
 	async processRequest(driver_request) {
 		let request = null;
 		let module_ = null;
 		try {
 			if (driver_request.path.startsWith("/") !== true) driver_request.path = `/${driver_request.path}`;
+			await this.useHooks(this.handlers.beforeRouter, [driver_request]);
 			const router_response = await useRouter(this.router, driver_request.method, driver_request.path);
 			if (!router_response) throw new HyperAPIUnknownMethodError();
 			driver_request.args = {
 				...driver_request.args,
 				...router_response.args
 			};
-			request = this.handlers.transformer ? await this.handlers.transformer(driver_request) : driver_request;
 			module_ = await import(router_response.module_path);
 			if (module_.argsValidator) try {
-				request.args = module_.argsValidator(request.args);
+				driver_request.args = module_.argsValidator(driver_request.args);
 			} catch (error) {
 				console.error(error);
 				throw new HyperAPIInvalidParametersError();
 			}
-			for (const hook of this.handlers.module) await hook(request, module_);
+			request = this.handlers.requestTransformer ? await this.handlers.requestTransformer(driver_request, module_) : driver_request;
+			await this.useHooks(this.handlers.beforeExecute, [request, module_]);
 			const response = await module_.default(request);
 			return [
 				request,
@@ -325,8 +357,9 @@ var HyperAPI = class {
 	}
 	/** Destroys the HyperAPI instance. */
 	destroy() {
-		this.handlers.transformer = void 0;
-		this.handlers.module.splice(0);
+		this.handlers.beforeRouter.splice(0);
+		this.handlers.requestTransformer = void 0;
+		this.handlers.beforeExecute.splice(0);
 		this.handlers.response.splice(0);
 	}
 };
