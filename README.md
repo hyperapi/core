@@ -25,7 +25,7 @@ npm install @hyperapi/core
 
 ## Quick Start
 
-> **NOTE:** HyperAPI Core by itself cannot create a server. You must use a driver package to connect with the outside world. HyperAPI can work with any protocol through its driver system: HTTP, WebSocket, [TASQ](https://github.com/kirick-ts/tasq), [IPC](https://github.com/hyperapi/driver-ipc), or any custom protocol you create a driver for.
+> **NOTE:** HyperAPI Core by itself cannot create a server. You must use a driver package to connect with the outside world. HyperAPI can work with any protocol through its driver system: HTTP, WebSocket, [tasq](https://github.com/kirick-ts/tasq), [IPC](https://github.com/hyperapi/driver-ipc), or any custom protocol you create a driver for.
 
 ### 1. Set up your API structure
 
@@ -133,7 +133,7 @@ HyperAPI Core processes requests through a well-defined sequence of steps:
    - If `argsValidator` throws, a [`HyperAPIInvalidParametersError`](src/api-errors.ts#L12) is thrown
 7. *Core* calls registered `setRequestTransformer` hook to update request with developer-defined transformations.
    - This is a single point where developer can modify the request *type-safely* before it reaches the module
-8. *Core* executes all registered `onModule` hooks with request and module
+8. *Core* executes all registered `onBeforeExecute` hooks with request and module
 9. *Core* calls the module's `export default function` with the request object
 10. *Core* executes all registered `onResponse` hooks with request it received from the *Driver*, modified request, module, and response received from the module
 11. Finally, *Core* passes the response back to the *Driver*, which sends it to the client.
