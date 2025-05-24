@@ -25,7 +25,8 @@ npm install @hyperapi/core
 
 ## Quick Start
 
-> **NOTE:** HyperAPI Core by itself cannot create a server. You must use a driver package to connect with the outside world. HyperAPI can work with any protocol through its driver system: HTTP, WebSocket, [tasq](https://github.com/kirick-ts/tasq), [IPC](https://github.com/hyperapi/driver-ipc), or any custom protocol you create a driver for.
+> [!NOTE]
+> HyperAPI Core by itself cannot serve requests: you must use a driver package to connect with the outside world. HyperAPI can work with any protocol through its driver system: HTTP, WebSocket, [tasq](https://github.com/kirick-ts/tasq), [IPC](https://github.com/hyperapi/driver-ipc), or any custom protocol you create a driver for.
 
 ### 1. Set up your API structure
 
