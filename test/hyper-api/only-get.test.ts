@@ -1,14 +1,8 @@
-import {
-	expect,
-	test,
-} from 'vitest';
+import { expect, test } from 'vitest';
 import { driver } from '../setup.js';
 
 test('GET', async () => {
-	const result = await driver.trigger(
-		'GET',
-		'only-get',
-	);
+	const result = await driver.trigger('GET', 'only-get');
 
 	expect(result).toStrictEqual([
 		true,

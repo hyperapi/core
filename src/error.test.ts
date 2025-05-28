@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-	test,
-	expect,
-} from 'vitest';
+import { expect, test } from 'vitest';
 import { HyperAPIError } from './error.js';
 
 class HyperAPICustomError extends HyperAPIError<any> {

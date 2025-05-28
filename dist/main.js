@@ -1,6 +1,6 @@
 import nodePath from "node:path";
-import { IttyRouter } from "itty-router";
 import { readdirSync } from "node:fs";
+import { IttyRouter } from "itty-router";
 
 //#region src/utils/is-record.ts
 /**
@@ -150,10 +150,10 @@ const REGEXP_PATH_SLUG = /\[(\w+)]/g;
 function scanDirectory(router, path, regexp_parts = [""]) {
 	const result = readdirSync(path, { withFileTypes: true });
 	const routes = {
-		0: [],
-		1: [],
-		2: [],
-		3: []
+		"0": [],
+		"1": [],
+		"2": [],
+		"3": []
 	};
 	for (const entry of result) {
 		const entry_path = nodePath.join(path, entry.name);
@@ -222,12 +222,12 @@ var HyperAPI = class {
 			const driver_request = arg0;
 			const [request, module_, response] = await this.processRequest(driver_request);
 			try {
-				await this.useHooks(this.handlers.response, [
+				await this.useHooks(this.handlers.response, {
 					driver_request,
 					request,
-					module_,
+					module: module_,
 					response
-				]);
+				});
 			} catch (error) {
 				console.error("Error in \"response\" hook:");
 				console.error(error);
@@ -286,9 +286,9 @@ var HyperAPI = class {
 	onResponse(callback) {
 		this.handlers.response.push(callback);
 	}
-	async useHooks(hooks, args) {
+	async useHooks(hooks, ctx) {
 		const promises = [];
-		for (const hook of hooks) promises.push(hook(...args));
+		for (const hook of hooks) promises.push(hook(ctx));
 		await Promise.all(promises);
 	}
 	async processRequest(driver_request) {
@@ -296,7 +296,7 @@ var HyperAPI = class {
 		let module_ = null;
 		try {
 			if (driver_request.path.startsWith("/") !== true) driver_request.path = `/${driver_request.path}`;
-			await this.useHooks(this.handlers.beforeRouter, [driver_request]);
+			await this.useHooks(this.handlers.beforeRouter, { driver_request });
 			const router_response = await useRouter(this.router, driver_request.method, driver_request.path);
 			if (!router_response) throw new HyperAPIUnknownMethodError();
 			driver_request.args = {
@@ -310,8 +310,14 @@ var HyperAPI = class {
 				console.error(error);
 				throw new HyperAPIInvalidParametersError();
 			}
-			request = this.handlers.requestTransformer ? await this.handlers.requestTransformer(driver_request, module_) : driver_request;
-			await this.useHooks(this.handlers.beforeExecute, [request, module_]);
+			request = this.handlers.requestTransformer ? await this.handlers.requestTransformer({
+				driver_request,
+				module: module_
+			}) : driver_request;
+			await this.useHooks(this.handlers.beforeExecute, {
+				request,
+				module: module_
+			});
 			const response = await module_.default(request);
 			return [
 				request,

@@ -142,10 +142,23 @@ declare class HyperAPIMethodNotAllowedError<D extends HyperAPIErrorData> extends
 //#endregion
 //#region src/main.d.ts
 interface HyperAPIHandlers<D extends HyperAPIDriver, R extends InferDriverRequest<D>, M extends HyperAPIModule<R>> {
-  beforeRouter: ((driver_request: Readonly<InferDriverRequest<D>>) => Promisable<void>)[];
-  requestTransformer: ((driver_request: Readonly<InferDriverRequest<D>>, module_: M) => Promisable<R>) | void;
-  beforeExecute: ((request: Readonly<R>, module_: M) => Promisable<void>)[];
-  response: ((driver_request: Readonly<InferDriverRequest<D>>, request: R | null, module_: M | null, response: HyperAPIResponse) => Promisable<void>)[];
+  beforeRouter: ((ctx: {
+    driver_request: Readonly<InferDriverRequest<D>>;
+  }) => Promisable<void>)[];
+  requestTransformer: ((ctx: {
+    driver_request: Readonly<InferDriverRequest<D>>;
+    module: M;
+  }) => Promisable<R>) | void;
+  beforeExecute: ((ctx: {
+    request: Readonly<R>;
+    module: M;
+  }) => Promisable<void>)[];
+  response: ((ctx: {
+    driver_request: Readonly<InferDriverRequest<D>>;
+    request: R | null;
+    module: M | null;
+    response: HyperAPIResponse;
+  }) => Promisable<void>)[];
 }
 declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends InferDriverRequest<D>, M extends HyperAPIModule<R> = HyperAPIModule<R>> {
   private router;

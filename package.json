@@ -21,9 +21,11 @@
 		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
-		"@kirick/eslint-config": "^0.1.30",
+		"@biomejs/biome": "1.9.4",
+		"@kirick/lint": "0.1.0",
 		"@types/bun": "^1.2.13",
-		"eslint": "9.10.0",
+		"eslint": "9.27.0",
+		"oxlint": "0.16.12",
 		"publint": "0.3.12",
 		"tsdown": "0.12.2",
 		"type-fest": "^4.41.0",
@@ -35,7 +37,7 @@
 	"scripts": {
 		"build": "tsdown src/main.ts --publint --unused --dts --format esm --format cjs && rm dist/main.d.cts",
 		"check": "bun run lint && bun run build && bun run test",
-		"lint": "eslint . && tsc && (cd test && tsc)",
+		"lint": "biome check && oxlint && eslint . && tsc && (cd test && tsc)",
 		"test": "npm run test:vitest && bun test --coverage",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},
@@ -43,10 +45,7 @@
 		"type": "git",
 		"url": "git+https://github.com/hyperapi/core.git"
 	},
-	"keywords": [
-		"hyperapi",
-		"api"
-	],
+	"keywords": ["hyperapi", "api"],
 	"author": "Daniil Kirichenko (https://twitter.com/kirickme)",
 	"license": "MIT",
 	"bugs": {

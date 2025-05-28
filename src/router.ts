@@ -1,12 +1,8 @@
 /* eslint-disable n/no-sync */
 
-import {
-	IttyRouter,
-	type IRequest,
-	type IttyRouterType,
-} from 'itty-router';
 import { readdirSync } from 'node:fs';
 import nodePath from 'node:path';
+import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';
 import type { HyperAPIMethod } from './utils/methods.js';
 
 /**
@@ -14,8 +10,10 @@ import type { HyperAPIMethod } from './utils/methods.js';
  * @param path The path to scan.
  * @returns The new IttyRouter.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function createRouter(path: string): IttyRouterType<IRequest, any[], any> {
+export function createRouter(
+	path: string,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): IttyRouterType<IRequest, any[], any> {
 	// eslint-disable-next-line new-cap
 	const router = IttyRouter();
 
@@ -67,38 +65,29 @@ interface Route {
 function scanDirectory(
 	router: IttyRouterType<IRequest, unknown[], unknown>,
 	path: string,
-	regexp_parts: string[] = [ '' ],
+	regexp_parts: string[] = [''],
 ) {
-	const result = readdirSync(
-		path,
-		{
-			withFileTypes: true,
-		},
-	);
+	const result = readdirSync(path, {
+		withFileTypes: true,
+	});
 
 	const routes: Record<number, Route[]> = {
-		0: [], // routes with no method and no slug
-		1: [], // routes with method and no slug
-		2: [], // routes with no method and slug
-		3: [], // routes with method and slug
+		'0': [], // routes with no method and no slug
+		'1': [], // routes with method and no slug
+		'2': [], // routes with no method and slug
+		'3': [], // routes with method and slug
 	};
 
 	for (const entry of result) {
-		const entry_path = nodePath.join(
-			path,
-			entry.name,
-		);
+		const entry_path = nodePath.join(path, entry.name);
 
 		if (entry.isFile()) {
 			let file_name = entry.name;
 			if (
-				REGEXP_FILE_EXTENSION.test(file_name)
-				&& REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true
+				REGEXP_FILE_EXTENSION.test(file_name) &&
+				REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true
 			) {
-				file_name = file_name.replace(
-					REGEXP_FILE_EXTENSION,
-					'',
-				);
+				file_name = file_name.replace(REGEXP_FILE_EXTENSION, '');
 
 				let method: Route['method'] = 'all';
 				const method_match = file_name.match(REGEXP_HTTP_METHOD);
@@ -106,17 +95,11 @@ function scanDirectory(
 				if (method_match) {
 					method = method_match[1] as Exclude<Route['method'], 'all'>;
 
-					file_name = file_name.replace(
-						REGEXP_HTTP_METHOD,
-						'',
-					);
+					file_name = file_name.replace(REGEXP_HTTP_METHOD, '');
 				}
 
 				const has_slug = REGEXP_PATH_SLUG.test(file_name) ? 2 : 0;
-				file_name = file_name.replaceAll(
-					REGEXP_PATH_SLUG,
-					':$1',
-				);
+				file_name = file_name.replaceAll(REGEXP_PATH_SLUG, ':$1');
 
 				// console.log(
 				// 	entry_path,
@@ -130,48 +113,32 @@ function scanDirectory(
 				// eslint-disable-next-line no-bitwise
 				routes[has_method | has_slug]?.push({
 					method,
-					path: [
-						...regexp_parts,
-						file_name,
-					].join(nodePath.sep),
+					path: [...regexp_parts, file_name].join(nodePath.sep),
 					module_path: entry_path,
 				});
 			}
-		}
-		else {
-			scanDirectory(
-				router,
-				entry_path,
-				[
-					...regexp_parts,
-					entry.name.replaceAll(
-						REGEXP_PATH_SLUG,
-						':$1',
-					),
-				],
-			);
+		} else {
+			scanDirectory(router, entry_path, [
+				...regexp_parts,
+				entry.name.replaceAll(REGEXP_PATH_SLUG, ':$1'),
+			]);
 		}
 	}
 
-	for (
-		const route of [
-			// suppress indexed access to fail
-			...routes[1]!,
-			...routes[3]!,
-			...routes[0]!,
-			...routes[2]!,
-		]
-	) {
-		router[route.method](
-			route.path,
-			(r) => {
-				const response: RouterResponse = {
-					module_path: route.module_path,
-					args: r.params,
-				};
+	for (const route of [
+		// suppress indexed access to fail
+		...routes[1]!,
+		...routes[3]!,
+		...routes[0]!,
+		...routes[2]!,
+	]) {
+		router[route.method](route.path, (r) => {
+			const response: RouterResponse = {
+				module_path: route.module_path,
+				args: r.params,
+			};
 
-				return response;
-			},
-		);
+			return response;
+		});
 	}
 }

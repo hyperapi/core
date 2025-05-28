@@ -1,13 +1,5 @@
-import {
-	afterAll,
-	describe,
-	test,
-	expect,
-} from 'vitest';
-import {
-	driver,
-	hyperApi,
-} from '../test/setup.js';
+import { afterAll, describe, expect, test } from 'vitest';
+import { driver, hyperApi } from '../test/setup.js';
 
 afterAll(() => {
 	hyperApi.destroy();
@@ -16,13 +8,9 @@ afterAll(() => {
 describe('routing', () => {
 	describe('methods', () => {
 		test('ALL with GET', async () => {
-			const result = await driver.trigger(
-				'GET',
-				'echo',
-				{
-					name: 'world',
-				},
-			);
+			const result = await driver.trigger('GET', 'echo', {
+				name: 'world',
+			});
 
 			expect(result).toStrictEqual([
 				true,
@@ -37,13 +25,9 @@ describe('routing', () => {
 		});
 
 		test('ALL with DELETE', async () => {
-			const result = await driver.trigger(
-				'DELETE',
-				'echo',
-				{
-					name: 'world',
-				},
-			);
+			const result = await driver.trigger('DELETE', 'echo', {
+				name: 'world',
+			});
 
 			expect(result).toStrictEqual([
 				true,
@@ -58,13 +42,9 @@ describe('routing', () => {
 		});
 
 		test('POST', async () => {
-			const result = await driver.trigger(
-				'POST',
-				'echo',
-				{
-					name: 'deadbeef',
-				},
-			);
+			const result = await driver.trigger('POST', 'echo', {
+				name: 'deadbeef',
+			});
 
 			expect(result).toStrictEqual([
 				true,

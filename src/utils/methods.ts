@@ -1,4 +1,12 @@
-export type HyperAPIMethod = 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT' | 'UNKNOWN';
+export type HyperAPIMethod =
+	| 'DELETE'
+	| 'GET'
+	| 'HEAD'
+	| 'OPTIONS'
+	| 'PATCH'
+	| 'POST'
+	| 'PUT'
+	| 'UNKNOWN';
 
 /**
  * Checks if the given value is a valid HyperAPI method.
@@ -6,12 +14,14 @@ export type HyperAPIMethod = 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | '
  * @returns -
  */
 export function isHyperApiMethod(method: unknown): method is HyperAPIMethod {
-	return method === 'DELETE'
-		|| method === 'GET'
-		|| method === 'HEAD'
-		|| method === 'OPTIONS'
-		|| method === 'PATCH'
-		|| method === 'POST'
-		|| method === 'PUT'
-		|| method === 'UNKNOWN';
+	return (
+		method === 'DELETE' ||
+		method === 'GET' ||
+		method === 'HEAD' ||
+		method === 'OPTIONS' ||
+		method === 'PATCH' ||
+		method === 'POST' ||
+		method === 'PUT' ||
+		method === 'UNKNOWN'
+	);
 }

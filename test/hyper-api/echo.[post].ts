@@ -6,11 +6,13 @@ import type {
 	HyperAPIResponse,
 	InferModule,
 } from '../../src/main.js';
-import { hyperApi } from '../setup.js';
+import type { hyperApi } from '../setup.js';
 
 type Module = InferModule<typeof hyperApi>;
 
-export default function (request: HyperAPIRequest<ReturnType<typeof argsValidator>>): HyperAPIResponse {
+export default function (
+	request: HyperAPIRequest<ReturnType<typeof argsValidator>>,
+): HyperAPIResponse {
 	return {
 		method: {
 			expected: 'POST',

@@ -1,14 +1,8 @@
-import {
-	expect,
-	test,
-} from 'vitest';
+import { expect, test } from 'vitest';
 import { driver } from '../../setup.js';
 
 test('error', async () => {
-	const result = await driver.trigger(
-		'GET',
-		'errors/api',
-	);
+	const result = await driver.trigger('GET', 'errors/api');
 
 	expect(result).toStrictEqual([
 		false,
@@ -20,15 +14,11 @@ test('error', async () => {
 });
 
 test('error with data', async () => {
-	const result = await driver.trigger(
-		'GET',
-		'errors/api',
-		{
-			error_data: {
-				foo: 'bar',
-			},
+	const result = await driver.trigger('GET', 'errors/api', {
+		error_data: {
+			foo: 'bar',
 		},
-	);
+	});
 
 	expect(result).toStrictEqual([
 		false,

@@ -1,16 +1,17 @@
 import type { EmptyObject } from 'type-fest';
 import {
+	HyperAPI,
 	type HyperAPIDriver,
 	type HyperAPIDriverHandler,
+	HyperAPIError,
 	type HyperAPIModule,
 	type HyperAPIRequest,
 	type HyperAPIRequestArgs,
-	HyperAPI,
-	HyperAPIError,
 } from '../src/main.js';
 import type { HyperAPIMethod } from '../src/utils/methods.js';
 
-interface DriverRequest<A extends HyperAPIRequestArgs = EmptyObject> extends HyperAPIRequest<A> {
+interface DriverRequest<A extends HyperAPIRequestArgs = EmptyObject>
+	extends HyperAPIRequest<A> {
 	foo: string;
 }
 
@@ -29,19 +30,21 @@ class HyperAPITestDriver implements HyperAPIDriver<DriverRequest> {
 		method: HyperAPIMethod,
 		path: string,
 		args?: Record<string, unknown>,
-	): Promise<[ boolean, unknown ]>;
+	): Promise<[boolean, unknown]>;
 	async trigger(
 		method: HyperAPIMethod,
 		path: string,
 		args: Record<string, unknown>,
 		use_http: true,
-	): Promise<[ boolean, unknown, { status: number | undefined } ]>;
+	): Promise<[boolean, unknown, { status: number | undefined }]>;
 	async trigger(
 		method: HyperAPIMethod,
 		path: string,
 		args: Record<string, unknown> = {},
-		use_http: boolean = false,
-	): Promise<[ boolean, unknown ] | [ boolean, unknown, { status: number | undefined }]> {
+		use_http = false,
+	): Promise<
+		[boolean, unknown] | [boolean, unknown, { status: number | undefined }]
+	> {
 		if (!this.handler) {
 			throw new Error('No handler available.');
 		}
@@ -56,28 +59,23 @@ class HyperAPITestDriver implements HyperAPIDriver<DriverRequest> {
 		if (response instanceof HyperAPIError) {
 			return use_http === true
 				? [
-					false,
-					response.getResponse(),
-					{
-						status: response.httpStatus,
-					},
-				]
-				: [
-					false,
-					response.getResponse(),
-				];
+						false,
+						response.getResponse(),
+						{
+							status: response.httpStatus,
+						},
+					]
+				: [false, response.getResponse()];
 		}
 
-		return [
-			true,
-			response,
-		];
+		return [true, response];
 	}
 }
 
 export const driver = new HyperAPITestDriver();
 
-export interface LocalRequest<A extends HyperAPIRequestArgs = EmptyObject> extends DriverRequest<A> {
+export interface LocalRequest<A extends HyperAPIRequestArgs = EmptyObject>
+	extends DriverRequest<A> {
 	bar: number;
 }
 
@@ -101,63 +99,49 @@ export const hyperApi = new HyperAPI<
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-hyperApi.onBeforeRouter((driver_request) => {
+hyperApi.onBeforeRouter((ctx) => {
 	const {
 		foo,
 		// @ts-expect-error Accessing property that does not exist on DriverRequest
 		bar,
-	} = driver_request;
+	} = ctx.driver_request;
 });
 
-hyperApi.setRequestTransformer((driver_request) => {
+hyperApi.setRequestTransformer((ctx) => {
 	const {
 		foo,
 		// @ts-expect-error Accessing property that does not exist on DriverRequest
 		bar,
-	} = driver_request;
+	} = ctx.driver_request;
 
 	return {
-		...driver_request,
+		...ctx.driver_request,
 		bar: 10,
 	};
 });
 
-hyperApi.onBeforeExecute((request, module) => {
-	const {
-		foo,
-		bar,
-	} = request;
+hyperApi.onBeforeExecute((ctx) => {
+	const { foo, bar } = ctx.request;
 
-	const {
-		default: default_,
-		argsValidator,
-		auth,
-	} = module;
+	const { default: default_, argsValidator, auth } = ctx.module;
 });
 
-hyperApi.onResponse((driver_request, request, module, response) => {
+hyperApi.onResponse((ctx) => {
 	const {
 		foo,
 		// @ts-expect-error Accessing property that does not exist on DriverRequest
 		bar,
-	} = driver_request;
+	} = ctx.driver_request;
 
-	if (request) {
-		const {
-			foo,
-			bar,
-		} = request;
+	if (ctx.request) {
+		const { foo, bar } = ctx.request;
 	}
 
-	if (module) {
-		const {
-			default: default_,
-			argsValidator,
-			auth,
-		} = module;
+	if (ctx.module) {
+		const { default: default_, argsValidator, auth } = ctx.module;
 	}
 
-	console.log(response);
+	console.log(ctx.response);
 });
 
 /* eslint-enable @typescript-eslint/no-unused-vars */

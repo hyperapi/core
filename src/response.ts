@@ -1,4 +1,4 @@
-import { HyperAPIError } from './error.js';
+import type { HyperAPIError } from './error.js';
 import type { HyperAPIModuleResponse } from './module.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
