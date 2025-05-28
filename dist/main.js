@@ -251,6 +251,7 @@ var HyperAPI = class {
 	*/
 	onBeforeRouter(callback) {
 		this.handlers.beforeRouter.push(callback);
+		return this;
 	}
 	/**
 	* Use this hook add properties to the request before it is send to the API module.
@@ -263,6 +264,7 @@ var HyperAPI = class {
 	setRequestTransformer(transformer) {
 		if (this.handlers.requestTransformer) throw new Error("Transformer has already been set.");
 		this.handlers.requestTransformer = transformer;
+		return this;
 	}
 	/**
 	* Adds a hook to be called right before the API module is executed.
@@ -274,6 +276,7 @@ var HyperAPI = class {
 	*/
 	onBeforeExecute(callback) {
 		this.handlers.beforeExecute.push(callback);
+		return this;
 	}
 	/**
 	* Adds a hook to be called right before the response is sent back to the driver.
@@ -285,6 +288,7 @@ var HyperAPI = class {
 	*/
 	onResponse(callback) {
 		this.handlers.response.push(callback);
+		return this;
 	}
 	async useHooks(hooks, ctx) {
 		const promises = [];

@@ -185,7 +185,7 @@ declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends Infe
   * If error is thrown in this hook, it will abort the request processing and return an error response.
   * @param callback The callback function.
   */
-  onBeforeRouter(callback: HyperAPIHandlers<D, R, M>["beforeRouter"][number]): void;
+  onBeforeRouter(callback: HyperAPIHandlers<D, R, M>["beforeRouter"][number]): this;
   /**
   * Use this hook add properties to the request before it is send to the API module.
   *
@@ -194,7 +194,7 @@ declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends Infe
   * If error is thrown in this hook, it will abort the request processing and return an error response.
   * @param transformer The callback function.
   */
-  setRequestTransformer(transformer: HyperAPIHandlers<D, R, M>["requestTransformer"]): void;
+  setRequestTransformer(transformer: HyperAPIHandlers<D, R, M>["requestTransformer"]): this;
   /**
   * Adds a hook to be called right before the API module is executed.
   *
@@ -203,7 +203,7 @@ declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends Infe
   * If error is thrown in this hook, it will abort the request processing and return an error response.
   * @param callback -
   */
-  onBeforeExecute(callback: HyperAPIHandlers<D, R, M>["beforeExecute"][number]): void;
+  onBeforeExecute(callback: HyperAPIHandlers<D, R, M>["beforeExecute"][number]): this;
   /**
   * Adds a hook to be called right before the response is sent back to the driver.
   *
@@ -212,7 +212,7 @@ declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends Infe
   * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
   * @param callback -
   */
-  onResponse(callback: HyperAPIHandlers<D, R, M>["response"][number]): void;
+  onResponse(callback: HyperAPIHandlers<D, R, M>["response"][number]): this;
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
   private useHooks;
   private processRequest;

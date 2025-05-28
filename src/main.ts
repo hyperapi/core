@@ -107,8 +107,9 @@ export class HyperAPI<
 	 */
 	onBeforeRouter(
 		callback: HyperAPIHandlers<D, R, M>['beforeRouter'][number],
-	): void {
+	): this {
 		this.handlers.beforeRouter.push(callback);
+		return this;
 	}
 
 	/**
@@ -121,12 +122,13 @@ export class HyperAPI<
 	 */
 	setRequestTransformer(
 		transformer: HyperAPIHandlers<D, R, M>['requestTransformer'],
-	): void {
+	): this {
 		if (this.handlers.requestTransformer) {
 			throw new Error('Transformer has already been set.');
 		}
 
 		this.handlers.requestTransformer = transformer;
+		return this;
 	}
 
 	/**
@@ -139,8 +141,9 @@ export class HyperAPI<
 	 */
 	onBeforeExecute(
 		callback: HyperAPIHandlers<D, R, M>['beforeExecute'][number],
-	): void {
+	): this {
 		this.handlers.beforeExecute.push(callback);
+		return this;
 	}
 
 	/**
@@ -151,8 +154,9 @@ export class HyperAPI<
 	 * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
 	 * @param callback -
 	 */
-	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): void {
+	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): this {
 		this.handlers.response.push(callback);
+		return this;
 	}
 
 	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
