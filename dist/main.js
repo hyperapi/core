@@ -248,6 +248,7 @@ var HyperAPI = class {
 	*
 	* If error is thrown in this hook, it will abort the request processing and return an error response.
 	* @param callback The callback function.
+	* @returns -
 	*/
 	onBeforeRouter(callback) {
 		this.handlers.beforeRouter.push(callback);
@@ -260,6 +261,7 @@ var HyperAPI = class {
 	*
 	* If error is thrown in this hook, it will abort the request processing and return an error response.
 	* @param transformer The callback function.
+	* @returns -
 	*/
 	setRequestTransformer(transformer) {
 		if (this.handlers.requestTransformer) throw new Error("Transformer has already been set.");
@@ -273,6 +275,7 @@ var HyperAPI = class {
 	*
 	* If error is thrown in this hook, it will abort the request processing and return an error response.
 	* @param callback -
+	* @returns -
 	*/
 	onBeforeExecute(callback) {
 		this.handlers.beforeExecute.push(callback);
@@ -285,6 +288,7 @@ var HyperAPI = class {
 	*
 	* If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
 	* @param callback -
+	* @returns -
 	*/
 	onResponse(callback) {
 		this.handlers.response.push(callback);

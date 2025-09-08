@@ -97,7 +97,7 @@ export const hyperApi = new HyperAPI<
 	root: new URL('../test/hyper-api', import.meta.url).pathname,
 });
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* oxlint-disable no-unused-vars */
 
 hyperApi.onBeforeRouter((ctx) => {
 	const {
@@ -134,6 +134,7 @@ hyperApi.onResponse((ctx) => {
 	} = ctx.driver_request;
 
 	if (ctx.request) {
+		// eslint-disable-next-line no-shadow
 		const { foo, bar } = ctx.request;
 	}
 
@@ -141,7 +142,8 @@ hyperApi.onResponse((ctx) => {
 		const { default: default_, argsValidator, auth } = ctx.module;
 	}
 
+	// oxlint-disable-next-line no-console
 	console.log(ctx.response);
 });
 
-/* eslint-enable @typescript-eslint/no-unused-vars */
+/* oxlint-enable no-unused-vars */

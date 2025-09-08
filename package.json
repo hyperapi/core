@@ -7,9 +7,12 @@
 	},
 	"type": "module",
 	"main": "dist/main.js",
-	"types": "dist/main.d.ts",
 	"exports": {
 		".": {
+			"types": {
+				"import": "./dist/main.d.ts",
+				"require": "./dist/main.d.cts"
+			},
 			"import": "./dist/main.js",
 			"require": "./dist/main.cjs"
 		}
@@ -18,26 +21,26 @@
 		"node": ">=21"
 	},
 	"dependencies": {
-		"itty-router": "^5.0.18"
+		"itty-router": "5.0.22"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@kirick/lint": "0.1.0",
-		"@types/bun": "^1.2.13",
+		"@biomejs/biome": "2.1.1",
+		"@kirick/lint": "0.2.7",
+		"@types/bun": "1.2.21",
 		"eslint": "9.27.0",
-		"oxlint": "0.16.12",
+		"oxlint": "1.3.0",
 		"publint": "0.3.12",
-		"tsdown": "0.12.2",
-		"type-fest": "^4.41.0",
-		"typescript": "5.8.3",
-		"unplugin-unused": "0.5.0",
+		"tsdown": "0.14.2",
+		"type-fest": "4.41.0",
+		"typescript": "5.9.2",
+		"unplugin-unused": "0.5.2",
 		"valibot": "1.1.0",
-		"vitest": "3.1.4"
+		"vitest": "3.2.4"
 	},
 	"scripts": {
-		"build": "tsdown src/main.ts --publint --unused --dts --format esm --format cjs && rm dist/main.d.cts",
+		"build": "tsdown src/main.ts --publint --unused --dts --format esm --format cjs",
 		"check": "bun run lint && bun run build && bun run test",
-		"lint": "biome check && oxlint && eslint . && tsc && (cd test && tsc)",
+		"lint": "biome format && oxlint && eslint . && tsc && (cd test && tsc)",
 		"test": "npm run test:vitest && bun test --coverage",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},
@@ -45,7 +48,10 @@
 		"type": "git",
 		"url": "git+https://github.com/hyperapi/core.git"
 	},
-	"keywords": ["hyperapi", "api"],
+	"keywords": [
+		"hyperapi",
+		"api"
+	],
 	"author": "Daniil Kirichenko (https://twitter.com/kirickme)",
 	"license": "MIT",
 	"bugs": {

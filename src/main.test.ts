@@ -59,6 +59,21 @@ describe('routing', () => {
 		});
 	});
 
+	test('slug', async () => {
+		const result = await driver.trigger('GET', 'echo-deadbeef');
+
+		expect(result).toStrictEqual([
+			true,
+			{
+				method: {
+					expected: 'ALL',
+					received: 'GET',
+				},
+				message: 'Hello, deadbeef!',
+			},
+		]);
+	});
+
 	// test('method in directory', async () => {
 	// 	const result = await request(
 	// 		'dir/nested',

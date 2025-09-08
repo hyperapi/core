@@ -1,5 +1,3 @@
-/* eslint-disable n/no-sync */
-
 import { readdirSync } from 'node:fs';
 import nodePath from 'node:path';
 import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';

@@ -79,10 +79,10 @@ export class HyperAPI<
 					response,
 				});
 			} catch (error) {
-				/* eslint-disable no-console */
+				// oxlint-disable-next-line no-console
 				console.error('Error in "response" hook:');
+				// oxlint-disable-next-line no-console
 				console.error(error);
-				/* eslint-enable no-console */
 			}
 
 			// 11. Finally, *Core* passes the response back to the *Driver*...
@@ -104,6 +104,7 @@ export class HyperAPI<
 	 *
 	 * If error is thrown in this hook, it will abort the request processing and return an error response.
 	 * @param callback The callback function.
+	 * @returns -
 	 */
 	onBeforeRouter(
 		callback: HyperAPIHandlers<D, R, M>['beforeRouter'][number],
@@ -119,6 +120,7 @@ export class HyperAPI<
 	 *
 	 * If error is thrown in this hook, it will abort the request processing and return an error response.
 	 * @param transformer The callback function.
+	 * @returns -
 	 */
 	setRequestTransformer(
 		transformer: HyperAPIHandlers<D, R, M>['requestTransformer'],
@@ -138,6 +140,7 @@ export class HyperAPI<
 	 *
 	 * If error is thrown in this hook, it will abort the request processing and return an error response.
 	 * @param callback -
+	 * @returns -
 	 */
 	onBeforeExecute(
 		callback: HyperAPIHandlers<D, R, M>['beforeExecute'][number],
@@ -153,6 +156,7 @@ export class HyperAPI<
 	 *
 	 * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
 	 * @param callback -
+	 * @returns -
 	 */
 	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): this {
 		this.handlers.response.push(callback);
@@ -213,7 +217,7 @@ export class HyperAPI<
 				try {
 					driver_request.args = module_.argsValidator(driver_request.args);
 				} catch (error) {
-					// eslint-disable-next-line no-console
+					// oxlint-disable-next-line no-console
 					console.error(error);
 
 					throw new HyperAPIInvalidParametersError();
@@ -243,7 +247,7 @@ export class HyperAPI<
 				return [request, module_, error];
 			}
 
-			// eslint-disable-next-line no-console
+			// oxlint-disable-next-line no-console
 			console.error(error);
 
 			return [request, module_, new HyperAPIInternalError()];
@@ -265,8 +269,8 @@ export type {
 	HyperAPIDriverHandler,
 } from './driver.js';
 export {
-	type HyperAPIErrorData,
 	HyperAPIError,
+	type HyperAPIErrorData,
 } from './error.js';
 export type {
 	HyperAPIModule,
