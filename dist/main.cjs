@@ -162,7 +162,7 @@ function useRouter(router, method, path) {
 }
 const REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
 const REGEXP_TEST_FILE_EXTENSION = /\.test\.(js|mjs|cjs|ts)$/;
-const REGEXP_HTTP_METHOD = /\.\[(delete|get|head|options|patch|post|put)]$/;
+const REGEXP_HTTP_METHOD = /(?:^|\.)\[(delete|get|head|options|patch|post|put)]$/;
 const REGEXP_PATH_SLUG = /\[(\w+)]/g;
 /**
 * Scans directory for routes.

@@ -59,19 +59,38 @@ describe('routing', () => {
 		});
 	});
 
-	test('slug', async () => {
-		const result = await driver.trigger('GET', 'echo-deadbeef');
+	describe('slug', () => {
+		test('in the file name', async () => {
+			const result = await driver.trigger('GET', 'echo-deadbeef');
 
-		expect(result).toStrictEqual([
-			true,
-			{
-				method: {
-					expected: 'ALL',
-					received: 'GET',
+			expect(result).toStrictEqual([
+				true,
+				{
+					method: {
+						expected: 'ALL',
+						received: 'GET',
+					},
+					message: 'Hello, deadbeef!',
 				},
-				message: 'Hello, deadbeef!',
-			},
-		]);
+			]);
+		});
+
+		test('in the directory name', async () => {
+			const result = await driver.trigger('POST', 'user', {
+				name: 'bax',
+			});
+
+			expect(result).toStrictEqual([
+				true,
+				{
+					method: {
+						expected: 'POST',
+						received: 'POST',
+					},
+					message: 'Hello, bax!',
+				},
+			]);
+		});
 	});
 
 	// test('method in directory', async () => {
