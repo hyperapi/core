@@ -1,4 +1,5 @@
-import { EmptyObject, Promisable } from "type-fest";
+import { NeoEvent, NeoEventTarget } from "neoevents";
+import { IsEqual, Promisable, Simplify } from "type-fest";
 
 //#region src/utils/methods.d.ts
 type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNKNOWN";
@@ -9,8 +10,17 @@ type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" |
 */
 declare function isHyperApiMethod(method: unknown): method is HyperAPIMethod;
 //#endregion
+//#region src/utils/record.d.ts
+type BaseRecord = Record<string | number | symbol, unknown>;
+type EmptyObject = Record<symbol, never>;
+/**
+* Check if a value is a record.
+* @param value -
+* @returns -
+*/
+//#endregion
 //#region src/request.d.ts
-type HyperAPIRequestArgs = Record<string, unknown>;
+type HyperAPIRequestArgs = BaseRecord;
 interface HyperAPIRequest<A extends HyperAPIRequestArgs = EmptyObject> {
   method: HyperAPIMethod;
   path: string;
@@ -44,24 +54,42 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
   getResponse(): HyperAPIErrorResponse;
 }
 //#endregion
+//#region src/utils/types.d.ts
+type Join<R extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord> = R & ([ReqExtra] extends [never] ? unknown : IsEqual<ReqExtra, EmptyObject> extends true ? unknown : ReqExtra);
+type Extend<V1 extends BaseRecord, V2 extends BaseRecord | void> = Simplify<V2 extends void ? V1 : ([V1] extends [never] ? unknown : IsEqual<V1, EmptyObject> extends true ? unknown : V1) & V2>;
+//#endregion
 //#region src/module.d.ts
-type HyperAPIModuleResponse = Record<string, unknown> | Response | unknown[] | undefined;
-interface HyperAPIModule<R extends HyperAPIRequest<HyperAPIRequestArgs>> {
-  readonly default: (request: R) => Promisable<HyperAPIModuleResponse>;
-  readonly argsValidator: (args: unknown) => R extends HyperAPIRequest<infer A> ? A : never;
+type HyperAPIModuleResponse = Response | BaseRecord | unknown[] | undefined;
+declare class HyperAPIModule<Req extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord = never> {
+  private chain;
+  use<ReqAdd extends BaseRecord | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>): HyperAPIModule<Req, Extend<ReqExtra, ReqAdd>>;
+  set<const K extends string, V>(key: K, fn: (request: Join<Req, ReqExtra>) => Promisable<V>): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
+  set<const K extends string, V>(key: K, value: V): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
+  action<Resp extends HyperAPIModuleResponse | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<Resp>): HyperAPIModule<Req, Extend<ReqExtra, {
+    response: Resp;
+  }>>;
+  _run(request: Req): Promise<Join<Join<Req, {
+    response?: unknown;
+  }>, ReqExtra>>;
 }
-type InferModule<H extends HyperAPI<any, any, any>> = H extends HyperAPI<infer _D, infer _R, infer M> ? M : never;
 //#endregion
 //#region src/response.d.ts
 type HyperAPIResponse = HyperAPIModuleResponse | HyperAPIError<any>;
+/**
+* Checks if the given value is a HyperAPIResponse.
+* @param response - The value to check.
+* @returns True if the value is a HyperAPIResponse, false otherwise.
+*/
 //#endregion
 //#region src/driver.d.ts
-type HyperAPIDriverHandler<R extends HyperAPIRequest = HyperAPIRequest> = (request: R) => Promisable<HyperAPIResponse>;
-interface HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> {
-  start(handler: HyperAPIDriverHandler<R>): void;
-  stop(): void;
+declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extends NeoEventTarget<{
+  request: NeoEvent<{
+    request: R;
+    callback: (response: HyperAPIResponse) => void;
+  }>;
+}> {
+  R: R;
 }
-type InferDriverRequest<D extends HyperAPIDriver> = D extends HyperAPIDriver<infer R extends HyperAPIRequest> ? R : never;
 //#endregion
 //#region src/api-errors.d.ts
 declare class HyperAPIAuthorizationError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
@@ -85,6 +113,11 @@ declare class HyperAPIForbiddenError<D extends HyperAPIErrorData> extends HyperA
   httpStatus: number;
 }
 declare class HyperAPIUnknownMethodError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
+  code: number;
+  description: string;
+  httpStatus: number;
+}
+declare class HyperAPIUnknownMethodNotAllowedError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
   code: number;
   description: string;
   httpStatus: number;
@@ -131,86 +164,17 @@ declare class HyperAPIMethodNotAllowedError<D extends HyperAPIErrorData> extends
 }
 //#endregion
 //#region src/main.d.ts
-interface HyperAPIHandlers<D extends HyperAPIDriver, R extends InferDriverRequest<D>, M extends HyperAPIModule<R>> {
-  beforeRouter: ((ctx: {
-    driver_request: Readonly<InferDriverRequest<D>>;
-  }) => Promisable<void>)[];
-  requestTransformer: ((ctx: {
-    driver_request: Readonly<InferDriverRequest<D>>;
-    module: M;
-  }) => Promisable<R>) | void;
-  beforeExecute: ((ctx: {
-    request: Readonly<R>;
-    module: M;
-  }) => Promisable<void>)[];
-  response: ((ctx: {
-    driver_request: Readonly<InferDriverRequest<D>>;
-    request: R | null;
-    module: M | null;
-    response: HyperAPIResponse;
-  }) => Promisable<void>)[];
-}
-declare class HyperAPI<D extends HyperAPIDriver<HyperAPIRequest>, R extends InferDriverRequest<D>, M extends HyperAPIModule<R> = HyperAPIModule<R>> {
+declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends BaseRecord = EmptyObject> {
   private router;
-  private driver;
-  /**
-  * Creates a HyperAPI instance.
-  * @param options The options.
-  * @param options.driver The driver.
-  * @param [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
-  */
-  constructor({
-    driver,
-    root
-  }: {
-    driver: D;
-    root?: string;
-  });
-  private handlers;
-  /**
-  * Adds a hook to be called before request is matched against the file router.
-  *
-  * This hook can be set multiple times. Every hook is executed simultaneously.
-  *
-  * If error is thrown in this hook, it will abort the request processing and return an error response.
-  * @param callback The callback function.
-  * @returns -
-  */
-  onBeforeRouter(callback: HyperAPIHandlers<D, R, M>["beforeRouter"][number]): this;
-  /**
-  * Use this hook add properties to the request before it is send to the API module.
-  *
-  * This hook can be set only once.
-  *
-  * If error is thrown in this hook, it will abort the request processing and return an error response.
-  * @param transformer The callback function.
-  * @returns -
-  */
-  setRequestTransformer(transformer: HyperAPIHandlers<D, R, M>["requestTransformer"]): this;
-  /**
-  * Adds a hook to be called right before the API module is executed.
-  *
-  * This hook can be set multiple times. Every hook is executed simultaneously.
-  *
-  * If error is thrown in this hook, it will abort the request processing and return an error response.
-  * @param callback -
-  * @returns -
-  */
-  onBeforeExecute(callback: HyperAPIHandlers<D, R, M>["beforeExecute"][number]): this;
-  /**
-  * Adds a hook to be called right before the response is sent back to the driver.
-  *
-  * This hook can be set multiple times. Every hook is executed simultaneously.
-  *
-  * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
-  * @param callback -
-  * @returns -
-  */
-  onResponse(callback: HyperAPIHandlers<D, R, M>["response"][number]): this;
-  private useHooks;
+  private off;
+  constructor(driver: HyperAPIDriver<Req>, root?: string);
+  private hooks_before_router;
+  onBeforeRouter<ReqAdd extends BaseRecord | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>): HyperAPI<Req, Extend<ReqExtra, ReqAdd>>;
+  private hooks_response;
+  onResponse(fn: (request: Join<Req, ReqExtra>) => Promisable<void>): HyperAPI<Req, ReqExtra>;
   private processRequest;
-  /** Destroys the HyperAPI instance. */
+  module(): HyperAPIModule<Req, ReqExtra>;
   destroy(): void;
 }
 //#endregion
-export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, type HyperAPIDriver, type HyperAPIDriverHandler, HyperAPIError, type HyperAPIErrorData, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, type HyperAPIMethod, HyperAPIMethodNotAllowedError, type HyperAPIModule, type HyperAPIModuleResponse, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, type HyperAPIRequest, type HyperAPIRequestArgs, type HyperAPIResponse, HyperAPIUnknownMethodError, type InferModule, isHyperApiMethod };
+export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIDriver, HyperAPIError, type HyperAPIErrorData, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, type HyperAPIMethod, HyperAPIMethodNotAllowedError, type HyperAPIModule, type HyperAPIModuleResponse, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, type HyperAPIRequest, type HyperAPIRequestArgs, type HyperAPIResponse, HyperAPIUnknownMethodError, HyperAPIUnknownMethodNotAllowedError, isHyperApiMethod };

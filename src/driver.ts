@@ -1,14 +1,18 @@
-import type { Promisable } from 'type-fest';
+import { NeoEvent, NeoEventTarget } from 'neoevents';
 import type { HyperAPIRequest } from './request.js';
 import type { HyperAPIResponse } from './response.js';
 
-export type HyperAPIDriverHandler<R extends HyperAPIRequest = HyperAPIRequest> =
-	(request: R) => Promisable<HyperAPIResponse>;
+export class HyperAPIDriver<
+	R extends HyperAPIRequest = HyperAPIRequest,
+> extends NeoEventTarget<{
+	request: NeoEvent<{
+		request: R;
+		callback: (response: HyperAPIResponse) => void;
+	}>;
+}> {
+	declare R: R;
 
-export interface HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> {
-	start(handler: HyperAPIDriverHandler<R>): void;
-	stop(): void;
+	// override destroy(): void {
+	// 	this.destroy();
+	// }
 }
-
-export type InferDriverRequest<D extends HyperAPIDriver> =
-	D extends HyperAPIDriver<infer R extends HyperAPIRequest> ? R : never;

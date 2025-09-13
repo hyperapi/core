@@ -10,7 +10,6 @@ A powerful, type-safe foundation framework for building APIs with minimal boiler
 - 🔒 **Type-safe API development** - Get full TypeScript support and inference
 - 🧩 **File-based routing** - Automatically generate API endpoints from your file structure
 - 🚀 **Driver-based architecture** - Easily adapt to different environments (HTTP, WebSockets, etc.)
-- 🔍 **Input validation** - Built-in support for request validation
 - 🪝 **Middleware hooks** - Extensible system for authentication, logging, and more
 
 ## Installation
@@ -35,57 +34,93 @@ Create a directory to hold your API methods (default: `hyper-api` in your projec
 ```
 my-project/
 ├── hyper-api/
-│   ├── users.[get].ts
-│   ├── users.[post].ts
+│   ├── users.get.ts
+│   ├── users.post.ts
 │   └── products/
-│       ├── [id].[get].ts
-│       └── search.[get].ts
+│       ├── [id].get.ts
+│       └── search.get.ts
 ├── index.ts
 └── package.json
 ```
 
 HyperAPI uses file names to determine routes and HTTP methods:
 
-- `users.ts` → `GET /users`
-- `users.[post].ts` → `POST /users`
-- `users/[id].ts` → `GET /users/:id`
-- `users/[id].[delete].ts` → `DELETE /users/:id`
+#### Static Routes
 
-### 2. Create your API handlers
+File name will require an exact match. For example:
 
-Example of a basic endpoint (`hyper-api/hello.[get].ts`):
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/users.ts` | `/users` | `GET /users` |
 
-```typescript
-import type { HyperAPIRequest, HyperAPIResponse } from '@hyperapi/core';
-import * as v from 'valibot';
+#### Index Routes
 
-// Define your handler function
-export default function(request: HyperAPIRequest<ReturnType<typeof argsValidator>>): HyperAPIResponse {
-  return {
-    message: `Hello, ${request.args.name}!`,
-    timestamp: new Date().toISOString()
-  };
-}
+Files named as `index.ts` do not add `index` to the route.
 
-// Define input validation
-export const argsValidator = v.parser(
-  v.strictObject({
-    name: v.string('Name is required'),
-  })
-);
-```
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/index.ts` | `/` | `GET /` |
+| `/account/index.ts` | `/account` | `GET /account` |
 
-### 3. Initialize HyperAPI
+#### Route parameters
+
+Wrap any route parameter with `[]` to capture it.
+
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/users/[id].ts` | `/users/:id` | `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
+
+#### Optional route parameters
+
+Make a route parameter optional by wrapping it name with `[[]]` (double brackets).
+
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/users/[[id]].ts` | `/users/:id?` | `GET /users` with `{}` <br> `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
+
+You can mix parameters (both required and optional) in a single route segment:
+
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/files/[name].[[ext]].ts` | `/files/:name.:ext?` | `GET /files/image.png` with `{ name: "image", ext: "png" }` <br> `GET /files/README` with `{ name: "README" }` |
+
+#### Catch-all parameters
+
+Route parameter names as `[...name]` consumes all remaining path segments. This route can only be used in a file name.
+
+| File name | Route pattern | Matched requests | Unmatched requests |
+| - | - | - | - |
+| `/docs/[...path].ts` | `/docs/:path+` | `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` | `GET /docs` |
+
+#### Optional catch-all parameters
+
+Route parameter names as `[[...name]]` consumes all remaining path segments, but also matches routes with no segments. This route can only be used in a file name.
+
+| File name | Route pattern | Matched requests |
+| - | - | - |
+| `/docs/[[...path]].ts` | `/docs/:path+` | `GET /docs` with `{}` <br> `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` |
+
+#### HTTP methods
+
+Add HTTP method before an extension to make route match only given HTTP method. By default, route will serve any incoming HTTP method.
+
+| File name | Route pattern | Matched requests | Unmatched requests |
+| - | - | - | - |
+| `/user/[id].get.ts` | `/user/:id` | `GET /user/1` with `{ id: "1" }` | `POST /user/1` <br> `DELETE /user/1` |
+
+But you can not use HTTP method in the filename if there is no name for the route. If you want to serve `POST /account`, create file `/account.post.ts` or `account/index.post.ts`, not just `account/post.ts`.
+
+### 2. Initialize HyperAPI
 
 ```typescript
 import { HyperAPI } from '@hyperapi/core';
-import { SomeHttpDriver } from '@hyperapi/some-http-driver'; // functional driver
+import { SomeHttpDriver } from '@hyperapi/some-http-driver'; // fictional driver
 
 // Create a driver instance
 const driver = new SomeHttpDriver({ port: 3000 });
 
-// Initialize HyperAPI with the driver
-const hyperApiCore = new HyperAPI({
+// Initialize HyperAPI with the driver and export it
+export const hyperApi = new HyperAPI({
   driver,
   // Optional: custom root path for API methods
   // root: path.join(import.meta.dir, 'api')
@@ -94,113 +129,136 @@ const hyperApiCore = new HyperAPI({
 console.log('API server running on http://localhost:3000');
 ```
 
+### 3. Create your API handlers
+
+Example of a basic endpoint (`hyper-api/hello.get.ts`):
+
+```typescript
+import * as v from 'valibot';
+// import HyperAPI instance you created
+import { hyperApi } from '../main.js';
+
+// Define input validation
+function params<S extends v.BaseSchema<any, any, any>>(schema: S) {
+  return (request) => {
+    return { args: v.parse(schema, request.args) };
+  };
+}
+
+// Define your handler function
+export default hyperApi.module()
+  .use(params(
+    v.strictObject({
+      name: v.string('Name is required'),
+    }),
+  ))
+  .action((request) => {
+    // request.args now typed as { name: string }
+    return {
+      message: `Hello, ${request.args.name}!`,
+      timestamp: new Date().toISOString()
+    };
+  });
+```
+
 ## Request Pipeline
 
 HyperAPI Core processes requests through a well-defined sequence of steps:
 
 1. *Driver* creates a [request](src/request.ts#L6) and passes it to the *Core*
-2. *Core* executes all registered `onBeforeRouter` hooks with request it received from the *Driver*
+2. *Core* runs all registered `onBeforeRouter` hooks with request it received from the *Driver*
 3. *Core* uses a file router to match the request path and method to a module file
-   - If no match is found, a [`HyperAPIUnknownMethodError`](src/api-errors.ts#L30) is thrown
+   - If no match is found, a [`HyperAPIUnknownMethodError`](src/api-errors.ts#L36) is thrown
 4. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
-5. *Core* imports the matched module file dynamically
-6. If `argsValidator` is defined, *Core* calls it to validate the request arguments. Returned value is set as new request arguments value
-   - If `argsValidator` throws, a [`HyperAPIInvalidParametersError`](src/api-errors.ts#L12) is thrown
-7. *Core* calls registered `setRequestTransformer` hook to update request with developer-defined transformations.
-8. *Core* executes all registered `onBeforeExecute` hooks with request and module
-9. *Core* calls the module's `export default function` with the request object
-10. *Core* executes all registered `onResponse` hooks with request it received from the *Driver*, modified request, module, and response received from the module
-11. Finally, *Core* passes the response back to the *Driver*, which sends it to the client.
+5. *Core* imports the matched module file dynamically and runs it
+6. *Core* executes all registered `onResponse` hooks
+7. Finally, *Core* passes the response back to the *Driver*, which sends it to the client.
 
-If an error occurs at any steps from 2 to 9, the pipeline short-circuits to the step 10. Before executing step 10, *Core* sets [`HyperAPIInternalError`](src/api-errors.ts#L18) as a response, if error occurred before is not instance of `HyperAPIError`.
+If an error occurs at any steps from 2 to 5, the pipeline short-circuits to the step 6. Before executing step 6, *Core* sets [`HyperAPIInternalError`](src/api-errors.ts#L18) as a response, if error thrown is not instance of `HyperAPIError`.
 
-## Input Validation
+## Using plugins before executing the module
 
-HyperAPI has built-in support for input validation using libraries like [valibot](https://github.com/fabian-hiller/valibot):
+HyperAPI module allows you to use plugins (methods `use` and `set`) before executing the main code (method `action`). We described above how you can validate arguments using `valibot` and `use`.
+
+Properties returned from method `use` will be added to the request object.
 
 ```typescript
-import * as v from 'valibot';
+import { hyperApi } from '../somewhere.js';
 
-export const argsValidator = v.parser(
-  v.strictObject({
-    id: v.number('ID must be a number'),
-    email: v.string([v.email('Invalid email format')]),
-    tags: v.optional(v.array(v.string())),
+export default hyperApi.module()
+  .use((request) => {
+    return { foo: 1 };
   })
-);
+  .action((request) => {
+    // request now has property foo: number
+    return {};
+  });
 ```
 
-In general, you define `argsValidator` function that throws if validation fails and returns a valid object if the input is correct. But validation library is your choice.
+If you want to add just one property, you can use the `set` method:
 
-## Hooks and Middleware
+```typescript
+import { hyperApi } from '../somewhere.js';
 
-HyperAPI provides several hooks for extending functionality at different stages of the request pipeline. Every type of hook executed in parallel, so be careful when changing request object there and avoid race conditions.
+export default hyperApi.module()
+  .set('foo', 1)
+  .action((request) => {
+    // request now has property foo: number
+    return {};
+  });
+```
+
+Obviously, you can `use` after `action` to do some job. Value returned from `action` is located in the `response` property of the request object.
+
+```typescript
+import { hyperApi } from '../somewhere.js';
+
+export default hyperApi.module()
+  .action((request) => {
+    return { foo: 1 };
+  })
+  .use((request) => {
+    // request now has property response: { foo: number }
+    console.log('use after action', request.response);
+  });
+```
+
+## Hooks
+
+HyperAPI provides several hooks for extending functionality at different stages of the request pipeline.
 
 ### `beforeRouter` hook
 
-Executed after path normalization but before route matching. Use for logging, request inspection, or early validation.
+Executed after path normalization but before route matching. Use for logging, request inspection, or early validation. If this hook returns an object, it will be merged with the request object. However, extra properties will be visible only to the next hooks, not the API module.
+
+These hooks are executed in order of their definition, allowing you to extend request object multiple times.
 
 ```typescript
-hyperApiCore.onBeforeRouter((driver_request) => {
-  console.log(`Incoming request: ${driver_request.method} ${driver_request.path}`);
-
-  // Verify request integrity, implement rate limiting, etc.
-  if (isRateLimited(driver_request)) {
-    throw new HyperAPIRateLimitError();
-  }
-});
-```
-
-### `requestTransformer` hook
-
-Executed after module loading and argument validation, but before module execution. Can access both driver request and module.
-
-This hook can be set only once.
-
-> [!TIP]
-> This is the only hook that can change the request type, allowing you to add custom properties or modify existing ones.
->
-> For example, if module exports `auth = true` property, you can validate token and add user information to the request object.
-
-```typescript
-hyperApiCore.setRequestTransformer((driver_request, module) => {
-  return {
-    ...driver_request,
-    user: module.auth
-      ? getCurrentUser(driver_request)
-      : null,
-  };
-});
-```
-
-### `beforeExecute` hook
-
-Executed before the module's default export function runs.
-
-```typescript
-hyperApiCore.onBeforeExecute((request, module) => {
-  // Runs after transformation, with the final request object
-  // Perfect for authorization checks based on both request and module
-  if (module.auth && !isAuthorized(request, module.auth)) {
-    throw new HyperAPIUnauthorizedError();
-  }
-});
+hyperApi
+  .onBeforeRouter((request) => {
+    console.log(`Incoming request: ${request.method} ${request.path}`);
+    return { started_at: Date.now() };
+  })
+  .onBeforeRouter((request) => {
+    // request has "started_at" property
+    if (isRateLimited(request)) {
+      throw new HyperAPIRateLimitError();
+    }
+  });
 ```
 
 ### `onResponse` hook
 
-Executed before returning response to driver. Receives all context from the request lifecycle.
+Executed before returning response to driver. Multiple hooks will be executed in parallel.
 
-This hook has access to both the original driver request and the transformed request. Also, errors thrown from this hook will not change the response.
+This hook has access to request and response returned from API method module. Errors thrown from this hook will not change the response.
 
 ```typescript
-hyperApiCore.onResponse((driver_request, request, module, response) => {
-  // Has access to both original driver request and transformed request
+hyperApi.onResponse((request, response) => {
+  // request still has "started_at" property added by onBeforeRouter hook
   // Useful for metrics, logging, and response modification
-  if (request) {
-    const duration = Date.now() - request.startTime;
-    console.log(`${request.method} ${request.path} completed in ${duration}ms`);
-  }
+  const duration = Date.now() - request.started_at;
+  console.log(`${request.method} ${request.path} completed in ${duration}ms`);
 });
 ```
 
@@ -238,32 +296,7 @@ HyperAPI is designed to work with any transport layer or protocol through driver
 
 ## TypeScript Support
 
-HyperAPI is built with TypeScript and provides excellent type inference:
-
-```typescript
-// Define custom request type
-interface MyRequest extends HyperAPIRequest<MyArgs> {
-  user: {
-    id: string;
-    roles: string[];
-  }
-}
-
-// Define custom module interface
-interface MyModule extends HyperAPIModule<MyRequest> {
-  auth: boolean;
-  roles?: string[];
-}
-
-// Initialize with type parameters
-const hyperApiCore = new HyperAPI<
-  typeof myDriver,
-  MyRequest,
-  MyModule
->({
-  driver: myDriver
-});
-```
+HyperAPI is built with TypeScript and provides excellent type inference.
 
 ## Contributing
 

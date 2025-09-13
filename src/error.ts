@@ -1,4 +1,4 @@
-import { isRecord } from './utils/is-record.js';
+import { isRecord } from './utils/record.js';
 
 export type HyperAPIErrorData = Record<string, unknown> | undefined;
 

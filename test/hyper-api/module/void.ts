@@ -1,5 +1,5 @@
 import { hyperApi } from '../../server.js';
 
 export default hyperApi.module().action(() => {
-	throw new Error('This is a test error inside API module.');
+	process.hrtime();
 });

@@ -1,28 +1,63 @@
-import { readdirSync } from 'node:fs';
-import nodePath from 'node:path';
 import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';
+import type { HyperAPIModule } from './module.js';
+import type { HyperAPIRequest } from './request.js';
+import { readFiles, type WalkResult } from './router/file-tree.js';
 import type { HyperAPIMethod } from './utils/methods.js';
+import type { BaseRecord } from './utils/record.js';
+
+type HyperAPIIttyRouterResponse = {
+	getHandler: () => Promise<HyperAPIModule<HyperAPIRequest<BaseRecord>>>;
+	path: string;
+	args: BaseRecord;
+};
+type HyperAPIIttyRouter = IttyRouterType<
+	IRequest,
+	[],
+	HyperAPIIttyRouterResponse
+>;
 
 /**
  * Creates new IttyRouter from filesystem.
- * @param path The path to scan.
+ * @param path_root The path to scan.
  * @returns The new IttyRouter.
  */
-export function createRouter(
-	path: string,
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): IttyRouterType<IRequest, any[], any> {
+export function createRouter(path_root: string): HyperAPIIttyRouter {
 	// eslint-disable-next-line new-cap
-	const router = IttyRouter();
+	const router: HyperAPIIttyRouter = IttyRouter();
 
-	scanDirectory(router, path);
+	const routes = readFiles(path_root);
+	// console.log(Bun.inspect(routes, { colors: true }));
+
+	fillRouter(routes, router);
 
 	return router;
 }
 
-interface RouterResponse {
-	module_path: string;
-	args: Record<string, unknown>;
+/**
+ * Attaches routes to IttyRouter.
+ * @param routes The routes to attach.
+ * @param router The IttyRouter to attach to.
+ */
+function fillRouter(routes: WalkResult, router: HyperAPIIttyRouter) {
+	for (const route of routes) {
+		if ('method' in route) {
+			// console.log('[fillRouter]', route.method, route.route);
+			router[route.method](
+				route.route,
+				(request) =>
+					({
+						async getHandler() {
+							const module_ = await import(route.path);
+							return module_.default;
+						},
+						path: route.path,
+						args: request.params,
+					}) as HyperAPIIttyRouterResponse,
+			);
+		} else if ('children' in route) {
+			fillRouter(route.children, router);
+		}
+	}
 }
 
 /**
@@ -32,109 +67,27 @@ interface RouterResponse {
  * @param path The path to fetch data from.
  * @returns The response.
  */
-export function useRouter(
-	router: IttyRouterType<IRequest, unknown[], unknown>,
+export async function useRouter(
+	router: HyperAPIIttyRouter,
 	method: HyperAPIMethod,
 	path: string,
-) {
-	return router.fetch({
+): Promise<HyperAPIIttyRouterResponse | 'INVALID' | 'NOT_EXISTS'> {
+	// console.log('[useRouter]', method, path);
+	const url = `file://${path}`;
+	const result = await router.fetch({
 		method,
-		url: `file://${path}`,
-	}) as Promise<RouterResponse | undefined>;
-}
-
-const REGEXP_FILE_EXTENSION = /\.(js|mjs|cjs|ts)$/;
-const REGEXP_TEST_FILE_EXTENSION = /\.test\.(js|mjs|cjs|ts)$/;
-const REGEXP_HTTP_METHOD =
-	/(?:^|\.)\[(delete|get|head|options|patch|post|put)]$/;
-const REGEXP_PATH_SLUG = /\[(\w+)]/g;
-
-interface Route {
-	method: Lowercase<Exclude<HyperAPIMethod, 'UNKNOWN'>> | 'all';
-	path: string;
-	module_path: string;
-}
-
-/**
- * Scans directory for routes.
- * @param router The router to add routes to.
- * @param path The path to scan.
- * @param [regexp_parts] The parts of the regular expression.
- */
-function scanDirectory(
-	router: IttyRouterType<IRequest, unknown[], unknown>,
-	path: string,
-	regexp_parts: string[] = [''],
-) {
-	const result = readdirSync(path, {
-		withFileTypes: true,
+		url,
 	});
 
-	const routes: Record<number, Route[]> = {
-		'0': [], // routes with no method and no slug
-		'1': [], // routes with method and no slug
-		'2': [], // routes with no method and slug
-		'3': [], // routes with method and slug
-	};
-
-	for (const entry of result) {
-		const entry_path = nodePath.join(path, entry.name);
-
-		if (entry.isFile()) {
-			let file_name = entry.name;
-			if (
-				REGEXP_FILE_EXTENSION.test(file_name) &&
-				REGEXP_TEST_FILE_EXTENSION.test(file_name) !== true
-			) {
-				file_name = file_name.replace(REGEXP_FILE_EXTENSION, '');
-
-				let method: Route['method'] = 'all';
-				const method_match = file_name.match(REGEXP_HTTP_METHOD);
-				const has_method = method_match ? 1 : 0;
-				if (method_match) {
-					method = method_match[1] as Exclude<Route['method'], 'all'>;
-
-					file_name = file_name.replace(REGEXP_HTTP_METHOD, '');
-				}
-
-				const has_slug = REGEXP_PATH_SLUG.test(file_name) ? 2 : 0;
-				file_name = file_name.replaceAll(REGEXP_PATH_SLUG, ':$1');
-
-				// console.log(
-				// 	entry_path,
-				// 	method,
-				// 	[...regexp_parts, file_name].join(nodePath.sep),
-				// );
-
-				// eslint-disable-next-line no-bitwise
-				routes[has_method | has_slug]?.push({
-					method,
-					path: [...regexp_parts, file_name].join(nodePath.sep),
-					module_path: entry_path,
-				});
-			}
-		} else {
-			scanDirectory(router, entry_path, [
-				...regexp_parts,
-				entry.name.replaceAll(REGEXP_PATH_SLUG, ':$1'),
-			]);
-		}
+	if (result) {
+		// console.log('result', result);
+		return result;
 	}
 
-	for (const route of [
-		// suppress indexed access to fail
-		...routes[1]!,
-		...routes[3]!,
-		...routes[0]!,
-		...routes[2]!,
-	]) {
-		router[route.method](route.path, (r) => {
-			const response: RouterResponse = {
-				module_path: route.module_path,
-				args: r.params,
-			};
+	const result_unknown = await router.fetch({
+		method: 'UNKNOWN',
+		url,
+	});
 
-			return response;
-		});
-	}
+	return result_unknown ? 'INVALID' : 'NOT_EXISTS';
 }

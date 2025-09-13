@@ -1,7 +1,7 @@
-import type { EmptyObject } from 'type-fest';
 import type { HyperAPIMethod } from './utils/methods.js';
+import type { BaseRecord, EmptyObject } from './utils/record.js';
 
-export type HyperAPIRequestArgs = Record<string, unknown>;
+export type HyperAPIRequestArgs = BaseRecord;
 
 export interface HyperAPIRequest<A extends HyperAPIRequestArgs = EmptyObject> {
 	method: HyperAPIMethod;

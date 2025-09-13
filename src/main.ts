@@ -4,270 +4,183 @@ import {
 	HyperAPIInternalError,
 	HyperAPIInvalidParametersError,
 	HyperAPIUnknownMethodError,
+	HyperAPIUnknownMethodNotAllowedError,
 } from './api-errors.js';
-import type { HyperAPIDriver, InferDriverRequest } from './driver.js';
+import type { HyperAPIDriver } from './driver.js';
 import { HyperAPIError } from './error.js';
-import type { HyperAPIModule } from './module.js';
+import { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
-import type { HyperAPIResponse } from './response.js';
+import { type HyperAPIResponse, isHyperAPIResponse } from './response.js';
 import { createRouter, useRouter } from './router.js';
-
-interface HyperAPIHandlers<
-	D extends HyperAPIDriver,
-	R extends InferDriverRequest<D>,
-	M extends HyperAPIModule<R>,
-> {
-	beforeRouter: ((ctx: {
-		driver_request: Readonly<InferDriverRequest<D>>;
-	}) => Promisable<void>)[];
-	requestTransformer:
-		| ((ctx: {
-				driver_request: Readonly<InferDriverRequest<D>>;
-				module: M;
-		  }) => Promisable<R>)
-		| void;
-	beforeExecute: ((ctx: {
-		request: Readonly<R>;
-		module: M;
-	}) => Promisable<void>)[];
-	response: ((ctx: {
-		driver_request: Readonly<InferDriverRequest<D>>;
-		request: R | null;
-		module: M | null;
-		response: HyperAPIResponse;
-	}) => Promisable<void>)[];
-}
+import {
+	type BaseRecord,
+	type EmptyObject,
+	hasCommonKeys,
+} from './utils/record.js';
+import type { Extend, Join } from './utils/types.js';
 
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]!);
 
 export class HyperAPI<
-	D extends HyperAPIDriver<HyperAPIRequest>,
-	R extends InferDriverRequest<D>,
-	M extends HyperAPIModule<R> = HyperAPIModule<R>,
+	Req extends HyperAPIRequest,
+	ReqExtra extends BaseRecord = EmptyObject,
 > {
-	private router: ReturnType<typeof createRouter>;
-	private driver: D;
+	private router;
+	private off: () => void;
 
-	/**
-	 * Creates a HyperAPI instance.
-	 * @param options The options.
-	 * @param options.driver The driver.
-	 * @param [options.root] The root directory for API methods modules. Default: `hyper-api` directory alongside the entrypoint script.
-	 */
-	constructor({
-		driver,
-		root = nodePath.join(ENTRYPOINT_PATH, 'hyper-api'),
-	}: {
-		driver: D;
-		root?: string;
-	}) {
-		this.driver = driver;
+	constructor(
+		driver: HyperAPIDriver<Req>,
+		root: string = nodePath.join(ENTRYPOINT_PATH, 'hyper-api'),
+	) {
 		this.router = createRouter(root);
 
-		this.driver.start(async (arg0) => {
-			const driver_request = arg0 as InferDriverRequest<D>;
+		this.off = driver.on('request', async (event) => {
+			const [request_external, response] = await this.processRequest(
+				event.detail.request,
+			);
 
-			const [request, module_, response] =
-				await this.processRequest(driver_request);
+			if (this.hooks_response.length > 0) {
+				const promises = [];
+				for (const fn of this.hooks_response) {
+					// catch sync errors
+					try {
+						const result = fn({
+							...event.detail.request,
+							...request_external,
+						});
 
-			// 10. *Core* executes all registered `onResponse` hooks...
-			try {
-				await this.useHooks(this.handlers.response, {
-					driver_request,
-					request,
-					module: module_,
-					response,
-				});
-			} catch (error) {
-				// oxlint-disable-next-line no-console
-				console.error('Error in "response" hook:');
-				// oxlint-disable-next-line no-console
-				console.error(error);
+						if (result instanceof Promise) {
+							// oxlint-disable-next-line no-console
+							promises.push(result.catch(console.error));
+						}
+					} catch (error) {
+						// oxlint-disable-next-line no-console
+						console.error(error);
+					}
+				}
+
+				await Promise.all(promises);
 			}
 
-			// 11. Finally, *Core* passes the response back to the *Driver*...
-			return response;
+			event.detail.callback(response);
 		});
 	}
 
-	private handlers: HyperAPIHandlers<D, R, M> = {
-		beforeRouter: [],
-		requestTransformer: undefined,
-		beforeExecute: [],
-		response: [],
-	};
+	private hooks_before_router: ((
+		request: Join<Req, ReqExtra>,
+	) => Promisable<BaseRecord | void>)[] = [];
 
-	/**
-	 * Adds a hook to be called before request is matched against the file router.
-	 *
-	 * This hook can be set multiple times. Every hook is executed simultaneously.
-	 *
-	 * If error is thrown in this hook, it will abort the request processing and return an error response.
-	 * @param callback The callback function.
-	 * @returns -
-	 */
-	onBeforeRouter(
-		callback: HyperAPIHandlers<D, R, M>['beforeRouter'][number],
-	): this {
-		this.handlers.beforeRouter.push(callback);
-		return this;
-	}
-
-	/**
-	 * Use this hook add properties to the request before it is send to the API module.
-	 *
-	 * This hook can be set only once.
-	 *
-	 * If error is thrown in this hook, it will abort the request processing and return an error response.
-	 * @param transformer The callback function.
-	 * @returns -
-	 */
-	setRequestTransformer(
-		transformer: HyperAPIHandlers<D, R, M>['requestTransformer'],
-	): this {
-		if (this.handlers.requestTransformer) {
-			throw new Error('Transformer has already been set.');
-		}
-
-		this.handlers.requestTransformer = transformer;
-		return this;
-	}
-
-	/**
-	 * Adds a hook to be called right before the API module is executed.
-	 *
-	 * This hook can be set multiple times. Every hook is executed simultaneously.
-	 *
-	 * If error is thrown in this hook, it will abort the request processing and return an error response.
-	 * @param callback -
-	 * @returns -
-	 */
-	onBeforeExecute(
-		callback: HyperAPIHandlers<D, R, M>['beforeExecute'][number],
-	): this {
-		this.handlers.beforeExecute.push(callback);
-		return this;
-	}
-
-	/**
-	 * Adds a hook to be called right before the response is sent back to the driver.
-	 *
-	 * This hook can be set multiple times. Every hook is executed simultaneously.
-	 *
-	 * If error is thrown in this hook, it will be printed to the console, but will not prevent response from being sent to the driver.
-	 * @param callback -
-	 * @returns -
-	 */
-	onResponse(callback: HyperAPIHandlers<D, R, M>['response'][number]): this {
-		this.handlers.response.push(callback);
-		return this;
-	}
-
-	// eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-explicit-any
-	private async useHooks<const H extends (...args: any[]) => void>(
-		hooks: H[],
-		ctx: Parameters<H>[0],
+	onBeforeRouter<ReqAdd extends BaseRecord | void>(
+		fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>,
 	) {
-		const promises: Promisable<void>[] = [];
-		for (const hook of hooks) {
-			promises.push(hook(ctx));
-		}
+		this.hooks_before_router.push(fn);
 
-		await Promise.all(promises);
+		return this as unknown as HyperAPI<Req, Extend<ReqExtra, ReqAdd>>;
+	}
+
+	private hooks_response: ((
+		request: Join<Req, ReqExtra>,
+	) => Promisable<void>)[] = [];
+
+	onResponse(fn: (request: Join<Req, ReqExtra>) => Promisable<void>) {
+		this.hooks_response.push(fn);
+
+		return this as HyperAPI<Req, ReqExtra>;
 	}
 
 	private async processRequest(
-		driver_request: InferDriverRequest<D>,
-	): Promise<[R | null, M | null, HyperAPIResponse]> {
+		request: Req,
+	): Promise<[ReqExtra, HyperAPIResponse]> {
 		// 1. *Driver* creates a request and passes it to the *Core*
 
-		let request: R | null = null;
-		let module_: M | null = null;
+		// console.log('Processing request:', request);
+
+		let request_external = {} as ReqExtra;
 
 		try {
-			if (driver_request.path.startsWith('/') !== true) {
-				driver_request.path = `/${driver_request.path}`;
+			if (request.path.startsWith('/') !== true) {
+				request.path = `/${request.path}`;
 			}
 
 			// 2. *Core* executes all registered `onBeforeRouter` hooks...
-			await this.useHooks(this.handlers.beforeRouter, { driver_request });
+			for (const fn of this.hooks_before_router) {
+				// oxlint-disable-next-line no-await-in-loop
+				const request_added = await fn({
+					...request,
+					...request_external,
+				});
+				if (request_added !== undefined) {
+					request_external = {
+						...request_external,
+						...request_added,
+					};
+				}
+			}
 
 			// 3. *Core* uses a file router...
 			const router_response = await useRouter(
 				this.router,
-				driver_request.method,
-				driver_request.path,
+				request.method,
+				request.path,
 			);
-			if (!router_response) {
-				// TODO throw HyperAPIMethodNotAllowedError when path exists but HTTP method does not match
+
+			if (router_response === 'INVALID') {
+				throw new HyperAPIUnknownMethodNotAllowedError();
+			}
+
+			if (router_response === 'NOT_EXISTS') {
 				throw new HyperAPIUnknownMethodError();
 			}
 
 			// 4. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
-			driver_request.args = {
-				...driver_request.args,
-				...router_response.args,
-			};
-
-			// 5. *Core* imports the matched module file...
-			module_ = (await import(router_response.module_path)) as M;
-
-			// 6. If `argsValidator` is defined, *Core* calls it to validate the request arguments...
-			if (module_.argsValidator) {
-				try {
-					driver_request.args = module_.argsValidator(driver_request.args);
-				} catch (error) {
-					// oxlint-disable-next-line no-console
-					console.error(error);
-
-					throw new HyperAPIInvalidParametersError();
-				}
+			if (hasCommonKeys(router_response.args, request.args)) {
+				throw new HyperAPIInvalidParametersError();
 			}
 
-			// 7. *Core* calls registered `setRequestTransformer` hook
-			request = this.handlers.requestTransformer
-				? await this.handlers.requestTransformer({
-						driver_request,
-						module: module_,
-					})
-				: (driver_request as R);
+			request.args = {
+				...request.args,
+				...router_response.args,
+			} as Req['args'];
 
-			// 8. *Core* executes all registered `onBeforeExecute` hooks...
-			await this.useHooks(this.handlers.beforeExecute, {
-				request,
-				module: module_,
+			// 5. *Core* imports the matched module file...
+			const handler = await router_response.getHandler();
+
+			// 6. *Core* calls the module
+			const { response } = await handler._run({
+				...request,
+				...request_external,
 			});
+			if (isHyperAPIResponse(response) !== true) {
+				throw new TypeError(
+					`Invalid response type from module ${router_response.path}. Expected Response, HyperAPIError, array, object or undefined.`,
+				);
+			}
 
-			// 9. *Core* calls the module's `export default function`...
-			const response = await module_.default(request);
-
-			return [request, module_, response];
+			return [request_external, response];
 		} catch (error) {
 			if (error instanceof HyperAPIError) {
-				return [request, module_, error];
+				return [request_external, error];
 			}
 
 			// oxlint-disable-next-line no-console
 			console.error(error);
 
-			return [request, module_, new HyperAPIInternalError()];
+			return [request_external, new HyperAPIInternalError()];
 		}
 	}
 
-	/** Destroys the HyperAPI instance. */
+	// eslint-disable-next-line class-methods-use-this
+	module(): HyperAPIModule<Req, ReqExtra> {
+		return new HyperAPIModule<Req, ReqExtra>();
+	}
+
 	destroy(): void {
-		this.handlers.beforeRouter.splice(0);
-		this.handlers.requestTransformer = undefined;
-		this.handlers.beforeExecute.splice(0);
-		this.handlers.response.splice(0);
+		this.off();
 	}
 }
 
 export * from './api-errors.js';
-export type {
-	HyperAPIDriver,
-	HyperAPIDriverHandler,
-} from './driver.js';
+export { HyperAPIDriver } from './driver.js';
 export {
 	HyperAPIError,
 	type HyperAPIErrorData,
@@ -275,7 +188,6 @@ export {
 export type {
 	HyperAPIModule,
 	HyperAPIModuleResponse,
-	InferModule,
 } from './module.js';
 export type {
 	HyperAPIRequest,

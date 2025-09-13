@@ -41,6 +41,14 @@ export class HyperAPIUnknownMethodError<
 	override httpStatus = 404; // Not Found
 }
 
+export class HyperAPIUnknownMethodNotAllowedError<
+	D extends HyperAPIErrorData,
+> extends HyperAPIError<D> {
+	override code = 5;
+	override description = 'Unknown method called';
+	override httpStatus = 405; // Method Not Allowed
+}
+
 export class HyperAPIObjectsLimitError<
 	D extends HyperAPIErrorData,
 > extends HyperAPIError<D> {

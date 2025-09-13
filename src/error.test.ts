@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { expect, test } from 'vitest';
+import { HyperAPIBusyError } from './api-errors.js';
 import { HyperAPIError } from './error.js';
+
+test('data', () => {
+	const error = new HyperAPIBusyError({
+		foo: 'bar',
+	});
+	expect(error.data?.foo).toBe('bar');
+});
 
 class HyperAPICustomError extends HyperAPIError<any> {
 	code = 1001;
