@@ -28,7 +28,7 @@ jobs:
         id: set-tag
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          
+
           if [[ $VERSION == *"-beta."* ]]; then
             NPM_TAG="beta"
           elif [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -36,7 +36,7 @@ jobs:
           else
             NPM_TAG="dev"
           fi
-          
+
           echo "Detected version: $VERSION"
           echo "NPM tag: $NPM_TAG"
           echo "npm_tag=$NPM_TAG" >> $GITHUB_OUTPUT
@@ -51,7 +51,7 @@ jobs:
           else
             BRANCH=${{ github.base_ref }}
           fi
-          
+
           NPM_TAG=${{ steps.set-tag.outputs.npm_tag }}
 
           if [[ $BRANCH == "main" && $NPM_TAG != "latest" ]] || \
