@@ -18,6 +18,13 @@ type EmptyObject = Record<symbol, never>;
 * @param value -
 * @returns -
 */
+declare function isRecord(value: unknown): value is BaseRecord;
+/**
+* Checks if there are common keys in both object.
+* @param value1 -
+* @param value2 -
+* @returns -
+*/
 //#endregion
 //#region src/request.d.ts
 type HyperAPIRequestArgs = BaseRecord;
@@ -91,4 +98,4 @@ declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extend
   protected emitRequest(request: R): Promise<HyperAPIResponse>;
 }
 //#endregion
-export { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIMethod, HyperAPIModule, HyperAPIModuleResponse, HyperAPIRequest, HyperAPIRequestArgs, HyperAPIResponse, Join, isHyperApiMethod };
+export { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIMethod, HyperAPIModule, HyperAPIModuleResponse, HyperAPIRequest, HyperAPIRequestArgs, HyperAPIResponse, Join, isHyperApiMethod, isRecord };

@@ -1,5 +1,5 @@
-const require_chunk = require('./chunk-CUT6urMc.cjs');
-const neoevents = require_chunk.__toESM(require("neoevents"));
+const require_record = require('./record-D97pjgdq.cjs');
+const neoevents = require_record.__toESM(require("neoevents"));
 
 //#region src/driver.ts
 var HyperAPIDriver = class extends neoevents.NeoEventTarget {
@@ -27,3 +27,4 @@ function isHyperApiMethod(method) {
 //#endregion
 exports.HyperAPIDriver = HyperAPIDriver;
 exports.isHyperApiMethod = isHyperApiMethod;
+exports.isRecord = require_record.isRecord;

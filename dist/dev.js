@@ -1,3 +1,4 @@
+import { isRecord } from "./record-DFObD9mD.js";
 import { NeoEvent, NeoEventTarget } from "neoevents";
 
 //#region src/driver.ts
@@ -24,4 +25,4 @@ function isHyperApiMethod(method) {
 }
 
 //#endregion
-export { HyperAPIDriver, isHyperApiMethod };
+export { HyperAPIDriver, isHyperApiMethod, isRecord };

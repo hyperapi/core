@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { HyperAPITestDriver, TestRequest } from '../test/driver.js';
-import { HyperAPI, HyperAPIResponse } from './main.js';
+import { HyperAPI } from './main.js';
+import { HyperAPIResponse } from './response.js';
 
 test('HyperAPI constructor', () => {
 	const driver = new HyperAPITestDriver();
