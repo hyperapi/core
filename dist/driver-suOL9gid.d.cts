@@ -1,5 +1,5 @@
 import { NeoEvent, NeoEventTarget } from "neoevents";
-import { IsEqual, Merge, Promisable, Simplify } from "type-fest";
+import { IsEqual, IsNever, Merge, Promisable, Simplify } from "type-fest";
 
 //#region src/utils/methods.d.ts
 type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNKNOWN";
@@ -62,7 +62,7 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
 }
 //#endregion
 //#region src/utils/types.d.ts
-type IsRecord<T extends BaseRecord | void> = T extends void ? false : [T] extends [never] ? false : IsEqual<T, EmptyObject> extends true ? false : true;
+type IsRecord<T extends BaseRecord | void> = IsNever<T> extends true ? false : T extends void ? false : IsEqual<T, EmptyObject> extends true ? false : true;
 type Join<R extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord> = IsRecord<ReqExtra> extends true ? Merge<R, ReqExtra> : R;
 type SimpleMerge<Destination, Source> = Simplify<{ [Key in keyof Destination as Key extends keyof Source ? never : Key]: Destination[Key] } & Source>;
 type Extend<V1 extends BaseRecord, V2 extends BaseRecord | void> = IsRecord<V1> extends true ? IsRecord<V2> extends true ? SimpleMerge<V1, V2> : V1 : IsRecord<V2> extends true ? Exclude<V2, void> : EmptyObject;

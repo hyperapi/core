@@ -1,10 +1,10 @@
-import type { IsEqual, Merge, Simplify } from 'type-fest';
+import type { IsEqual, IsNever, Merge, Simplify } from 'type-fest';
 import type { HyperAPIRequest } from '../request.js';
 import type { BaseRecord, EmptyObject } from './record.js';
 
-type IsRecord<T extends BaseRecord | void> = T extends void
+type IsRecord<T extends BaseRecord | void> = IsNever<T> extends true
 	? false
-	: [T] extends [never]
+	: T extends void
 		? false
 		: IsEqual<T, EmptyObject> extends true
 			? false

@@ -22,5 +22,13 @@ test('Extend', () => {
 
 	expectTypeOf<Extend<EmptyObject, EmptyObject>>().toEqualTypeOf<EmptyObject>();
 
+	expectTypeOf<Extend<{ a: string }, never>>().toEqualTypeOf<{
+		a: string;
+	}>();
+
+	expectTypeOf<Extend<never, { a: string }>>().toEqualTypeOf<{
+		a: string;
+	}>();
+
 	expectTypeOf<Extend<{ a: string }, void>>().toEqualTypeOf<{ a: string }>();
 });
