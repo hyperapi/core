@@ -14,7 +14,7 @@ export class HyperAPIModule<
 	ReqExtra extends BaseRecord = never,
 > {
 	private chain: ((
-		request: Req & ReqExtra,
+		request: Join<Req, ReqExtra>,
 	) => Promisable<BaseRecord | void>)[] = [];
 
 	use<ReqAdd extends BaseRecord | void>(
@@ -69,7 +69,7 @@ export class HyperAPIModule<
 		let request_result = request;
 		for (const fn of this.chain) {
 			// oxlint-disable-next-line no-await-in-loop
-			const request_add = await fn(request_result as Req & ReqExtra);
+			const request_add = await fn(request_result as Join<Req, ReqExtra>);
 			if (request_add) {
 				request_result = {
 					...request_result,
