@@ -79,9 +79,7 @@ export class HyperAPI<
 		return this as unknown as HyperAPI<Req, Extend<ReqExtra, ReqAdd>>;
 	}
 
-	private hooks_response: ((
-		request: Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
-	) => Promisable<void>)[] = [];
+	private hooks_response: Parameters<typeof this.onResponse>[0][] = [];
 
 	onResponse(
 		fn: (

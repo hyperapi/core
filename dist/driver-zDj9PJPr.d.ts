@@ -1,5 +1,5 @@
 import { NeoEvent, NeoEventTarget } from "neoevents";
-import { IsEqual, Promisable, Simplify } from "type-fest";
+import { IsEqual, Merge, Promisable, Simplify } from "type-fest";
 
 //#region src/utils/methods.d.ts
 type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNKNOWN";
@@ -11,7 +11,7 @@ type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" |
 declare function isHyperApiMethod(method: unknown): method is HyperAPIMethod;
 //#endregion
 //#region src/utils/record.d.ts
-type BaseRecord = Record<string | number | symbol, unknown>;
+type BaseRecord = Record<PropertyKey, unknown>;
 type EmptyObject = Record<symbol, never>;
 /**
 * Check if a value is a record.
@@ -62,8 +62,10 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
 }
 //#endregion
 //#region src/utils/types.d.ts
-type Join<R extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord> = R & ([ReqExtra] extends [never] ? unknown : IsEqual<ReqExtra, EmptyObject> extends true ? unknown : ReqExtra);
-type Extend<V1 extends BaseRecord, V2 extends BaseRecord | void> = Simplify<V2 extends void ? V1 : ([V1] extends [never] ? unknown : IsEqual<V1, EmptyObject> extends true ? unknown : V1) & V2>;
+type IsRecord<T extends BaseRecord | void> = T extends void ? false : [T] extends [never] ? false : IsEqual<T, EmptyObject> extends true ? false : true;
+type Join<R extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord> = IsRecord<ReqExtra> extends true ? Merge<R, ReqExtra> : R;
+type SimpleMerge<Destination, Source> = Simplify<{ [Key in keyof Destination as Key extends keyof Source ? never : Key]: Destination[Key] } & Source>;
+type Extend<V1 extends BaseRecord, V2 extends BaseRecord | void> = IsRecord<V1> extends true ? IsRecord<V2> extends true ? SimpleMerge<V1, V2> : V1 : IsRecord<V2> extends true ? Exclude<V2, void> : EmptyObject;
 //#endregion
 //#region src/module.d.ts
 type HyperAPIModuleResponse = Response | BaseRecord | unknown[] | undefined;
@@ -75,9 +77,9 @@ declare class HyperAPIModule<Req extends HyperAPIRequest<BaseRecord>, ReqExtra e
   action<Resp extends HyperAPIModuleResponse | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<Resp>): HyperAPIModule<Req, Extend<ReqExtra, {
     response: Resp;
   }>>;
-  _run(request: Req): Promise<Join<Join<Req, {
+  _run(request: Req): Promise<Join<Req, Extend<ReqExtra, {
     response?: unknown;
-  }>, ReqExtra>>;
+  }>>>;
 }
 //#endregion
 //#region src/response.d.ts

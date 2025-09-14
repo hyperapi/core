@@ -1,4 +1,4 @@
-export type BaseRecord = Record<string | number | symbol, unknown>;
+export type BaseRecord = Record<PropertyKey, unknown>;
 export type EmptyObject = Record<symbol, never>;
 
 /**

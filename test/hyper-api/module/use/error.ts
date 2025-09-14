@@ -6,8 +6,8 @@ export default hyperApi
 	.use(() => {
 		throw new HyperAPIInvalidParametersError();
 	})
-	.action((request) => {
+	.action((_request) => {
 		return {
-			foo: request.foo,
+			foo: 'request is never',
 		};
 	});

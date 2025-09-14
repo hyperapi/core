@@ -1,4 +1,4 @@
-import { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIModule, HyperAPIRequest, HyperAPIResponse, Join } from "./driver-C8QSD3Oq.cjs";
+import { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIModule, HyperAPIRequest, HyperAPIResponse, Join } from "./driver-4SJMBJcu.cjs";
 import { Promisable } from "type-fest";
 
 //#region src/api-errors.d.ts

@@ -65,7 +65,7 @@ export class HyperAPIModule<
 
 	async _run(
 		request: Req,
-	): Promise<Join<Join<Req, { response?: unknown }>, ReqExtra>> {
+	): Promise<Join<Req, Extend<ReqExtra, { response?: unknown }>>> {
 		let request_result = request;
 		for (const fn of this.chain) {
 			// oxlint-disable-next-line no-await-in-loop
@@ -78,6 +78,6 @@ export class HyperAPIModule<
 			}
 		}
 
-		return request_result as Join<Req, ReqExtra & { response?: unknown }>;
+		return request_result as Awaited<ReturnType<typeof this._run>>;
 	}
 }
