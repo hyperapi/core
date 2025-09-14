@@ -1,30 +1,7 @@
-//#region rolldown:runtime
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __copyProps = (to, from, except, desc) => {
-	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
-		key = keys[i];
-		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
-			get: ((k) => from[k]).bind(null, key),
-			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-		});
-	}
-	return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
-	value: mod,
-	enumerable: true
-}) : target, mod));
-
-//#endregion
-const node_path = __toESM(require("node:path"));
-const itty_router = __toESM(require("itty-router"));
-const node_fs = __toESM(require("node:fs"));
-const neoevents = __toESM(require("neoevents"));
+const require_chunk = require('./chunk-CUT6urMc.cjs');
+const node_path = require_chunk.__toESM(require("node:path"));
+const itty_router = require_chunk.__toESM(require("itty-router"));
+const node_fs = require_chunk.__toESM(require("node:fs"));
 
 //#region src/utils/record.ts
 /**
@@ -409,21 +386,6 @@ async function useRouter(router, method, path) {
 }
 
 //#endregion
-//#region src/driver.ts
-var HyperAPIDriver = class extends neoevents.NeoEventTarget {};
-
-//#endregion
-//#region src/utils/methods.ts
-/**
-* Checks if the given value is a valid HyperAPI method.
-* @param method The HTTP method to check.
-* @returns -
-*/
-function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "HEAD" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNKNOWN";
-}
-
-//#endregion
 //#region src/main.ts
 const ENTRYPOINT_PATH = node_path.default.dirname(process.argv[1]);
 var HyperAPI = class {
@@ -509,7 +471,6 @@ exports.HyperAPIAuthorizationError = HyperAPIAuthorizationError;
 exports.HyperAPIBusyError = HyperAPIBusyError;
 exports.HyperAPICaptchaError = HyperAPICaptchaError;
 exports.HyperAPIConfirmationError = HyperAPIConfirmationError;
-exports.HyperAPIDriver = HyperAPIDriver;
 exports.HyperAPIError = HyperAPIError;
 exports.HyperAPIForbiddenError = HyperAPIForbiddenError;
 exports.HyperAPIInternalError = HyperAPIInternalError;
@@ -521,4 +482,3 @@ exports.HyperAPIObjectsLimitError = HyperAPIObjectsLimitError;
 exports.HyperAPIRateLimitError = HyperAPIRateLimitError;
 exports.HyperAPIUnknownMethodError = HyperAPIUnknownMethodError;
 exports.HyperAPIUnknownMethodNotAllowedError = HyperAPIUnknownMethodNotAllowedError;
-exports.isHyperApiMethod = isHyperApiMethod;

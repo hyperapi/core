@@ -185,21 +185,4 @@ export class HyperAPI<
 }
 
 export * from './api-errors.js';
-export { HyperAPIDriver } from './driver.js';
-export {
-	HyperAPIError,
-	type HyperAPIErrorData,
-} from './error.js';
-export type {
-	HyperAPIModule,
-	HyperAPIModuleResponse,
-} from './module.js';
-export type {
-	HyperAPIRequest,
-	HyperAPIRequestArgs,
-} from './request.js';
-export type { HyperAPIResponse } from './response.js';
-export {
-	type HyperAPIMethod,
-	isHyperApiMethod,
-} from './utils/methods.js';
+export { HyperAPIError } from './error.js';

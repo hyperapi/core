@@ -1,7 +1,6 @@
 import nodePath from "node:path";
 import { IttyRouter } from "itty-router";
 import { readdirSync } from "node:fs";
-import { NeoEvent, NeoEventTarget } from "neoevents";
 
 //#region src/utils/record.ts
 /**
@@ -386,21 +385,6 @@ async function useRouter(router, method, path) {
 }
 
 //#endregion
-//#region src/driver.ts
-var HyperAPIDriver = class extends NeoEventTarget {};
-
-//#endregion
-//#region src/utils/methods.ts
-/**
-* Checks if the given value is a valid HyperAPI method.
-* @param method The HTTP method to check.
-* @returns -
-*/
-function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "HEAD" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNKNOWN";
-}
-
-//#endregion
 //#region src/main.ts
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
 var HyperAPI = class {
@@ -481,4 +465,4 @@ var HyperAPI = class {
 };
 
 //#endregion
-export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIDriver, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError, HyperAPIUnknownMethodNotAllowedError, isHyperApiMethod };
+export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError, HyperAPIUnknownMethodNotAllowedError };

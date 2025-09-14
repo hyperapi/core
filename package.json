@@ -15,6 +15,14 @@
 			},
 			"import": "./dist/main.js",
 			"require": "./dist/main.cjs"
+		},
+		"./dev": {
+			"types": {
+				"import": "./dist/dev.d.ts",
+				"require": "./dist/dev.d.cts"
+			},
+			"import": "./dist/dev.js",
+			"require": "./dist/dev.cjs"
 		}
 	},
 	"engines": {
@@ -39,7 +47,7 @@
 		"vitest": "3.2.4"
 	},
 	"scripts": {
-		"build": "tsdown src/main.ts --publint --unused --dts --format esm --format cjs",
+		"build": "tsdown src/main.ts src/dev.ts --publint --unused --dts --format esm --format cjs",
 		"check": "bun run lint && bun run build && bun run test",
 		"lint": "biome format && oxlint && eslint . && tsc && (cd test && tsc)",
 		"test": "npm run test:vitest && bun test --coverage",
