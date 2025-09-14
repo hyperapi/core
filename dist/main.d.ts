@@ -171,7 +171,9 @@ declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends BaseRecord 
   private hooks_before_router;
   onBeforeRouter<ReqAdd extends BaseRecord | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>): HyperAPI<Req, Extend<ReqExtra, ReqAdd>>;
   private hooks_response;
-  onResponse(fn: (request: Join<Req, ReqExtra>) => Promisable<void>): HyperAPI<Req, ReqExtra>;
+  onResponse(fn: (request: Join<Req, Extend<ReqExtra, {
+    response: HyperAPIResponse;
+  }>>) => Promisable<void>): HyperAPI<Req, ReqExtra>;
   private processRequest;
   module(): HyperAPIModule<Req, ReqExtra>;
   destroy(): void;

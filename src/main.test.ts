@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { HyperAPITestDriver, TestRequest } from '../test/driver.js';
-import { HyperAPI } from './main.js';
+import { HyperAPI, HyperAPIResponse } from './main.js';
 
 test('HyperAPI constructor', () => {
 	const driver = new HyperAPITestDriver();
@@ -103,6 +103,12 @@ describe('hooks', () => {
 				.onResponse(async (request) => {
 					expectTypeOf(request).toExtend<TestRequest>();
 					expectTypeOf(request.foo).toBeString();
+					expectTypeOf(request.response).toEqualTypeOf<HyperAPIResponse>();
+					expect(request.response).toStrictEqual({
+						path: 'router/index.get.ts',
+						method: 'GET',
+						args: {},
+					});
 
 					valueFirst = mockFnFirst();
 
@@ -113,6 +119,12 @@ describe('hooks', () => {
 				.onResponse((request) => {
 					expectTypeOf(request).toExtend<TestRequest>();
 					expectTypeOf(request.foo).toBeString();
+					expectTypeOf(request.response).toEqualTypeOf<HyperAPIResponse>();
+					expect(request.response).toStrictEqual({
+						path: 'router/index.get.ts',
+						method: 'GET',
+						args: {},
+					});
 
 					valueSecond = mockFnSecond();
 				});

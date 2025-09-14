@@ -438,7 +438,8 @@ var HyperAPI = class {
 				for (const fn of this.hooks_response) try {
 					const result = fn({
 						...event.detail.request,
-						...request_external
+						...request_external,
+						response
 					});
 					if (result instanceof Promise) promises.push(result.catch(console.error));
 				} catch (error) {

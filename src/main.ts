@@ -47,6 +47,7 @@ export class HyperAPI<
 						const result = fn({
 							...event.detail.request,
 							...request_external,
+							response,
 						});
 
 						if (result instanceof Promise) {
@@ -79,10 +80,14 @@ export class HyperAPI<
 	}
 
 	private hooks_response: ((
-		request: Join<Req, ReqExtra>,
+		request: Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
 	) => Promisable<void>)[] = [];
 
-	onResponse(fn: (request: Join<Req, ReqExtra>) => Promisable<void>) {
+	onResponse(
+		fn: (
+			request: Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
+		) => Promisable<void>,
+	) {
 		this.hooks_response.push(fn);
 
 		return this as HyperAPI<Req, ReqExtra>;
