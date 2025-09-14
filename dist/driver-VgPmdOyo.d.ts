@@ -88,7 +88,7 @@ declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extend
     callback: (response: HyperAPIResponse) => void;
   }>;
 }> {
-  R: R;
+  protected emitRequest(request: R): Promise<HyperAPIResponse>;
 }
 //#endregion
 export { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIMethod, HyperAPIModule, HyperAPIModuleResponse, HyperAPIRequest, HyperAPIRequestArgs, HyperAPIResponse, Join, isHyperApiMethod };

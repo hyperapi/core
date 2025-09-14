@@ -2,7 +2,16 @@ const require_chunk = require('./chunk-CUT6urMc.cjs');
 const neoevents = require_chunk.__toESM(require("neoevents"));
 
 //#region src/driver.ts
-var HyperAPIDriver = class extends neoevents.NeoEventTarget {};
+var HyperAPIDriver = class extends neoevents.NeoEventTarget {
+	emitRequest(request) {
+		return new Promise((resolve) => {
+			this.emit("request", {
+				request,
+				callback: resolve
+			});
+		});
+	}
+};
 
 //#endregion
 //#region src/utils/methods.ts

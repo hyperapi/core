@@ -1,7 +1,6 @@
 import { HyperAPIDriver } from '../src/driver.js';
 import { HyperAPIError } from '../src/error.js';
 import type { HyperAPIRequest, HyperAPIRequestArgs } from '../src/request.js';
-import type { HyperAPIResponse } from '../src/response.js';
 import type { HyperAPIMethod } from '../src/utils/methods.js';
 import type { EmptyObject } from '../src/utils/record.js';
 
@@ -16,16 +15,11 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 		path: string,
 		args: Record<string, unknown> = {},
 	): Promise<[boolean, unknown, { status: number | undefined }]> {
-		const response = await new Promise<HyperAPIResponse>((resolve) => {
-			this.emit('request', {
-				request: {
-					method,
-					path,
-					args,
-					foo: 'bar',
-				},
-				callback: resolve,
-			});
+		const response = await this.emitRequest({
+			method,
+			path,
+			args,
+			foo: 'bar',
 		});
 
 		if (response instanceof HyperAPIError) {

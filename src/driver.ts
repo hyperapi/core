@@ -10,7 +10,16 @@ export class HyperAPIDriver<
 		callback: (response: HyperAPIResponse) => void;
 	}>;
 }> {
-	declare R: R;
+	// declare R: R;
+
+	protected emitRequest(request: R): Promise<HyperAPIResponse> {
+		return new Promise<HyperAPIResponse>((resolve) => {
+			this.emit('request', {
+				request,
+				callback: resolve,
+			});
+		});
+	}
 
 	// override destroy(): void {
 	// 	this.destroy();

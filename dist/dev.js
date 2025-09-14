@@ -1,7 +1,16 @@
 import { NeoEvent, NeoEventTarget } from "neoevents";
 
 //#region src/driver.ts
-var HyperAPIDriver = class extends NeoEventTarget {};
+var HyperAPIDriver = class extends NeoEventTarget {
+	emitRequest(request) {
+		return new Promise((resolve) => {
+			this.emit("request", {
+				request,
+				callback: resolve
+			});
+		});
+	}
+};
 
 //#endregion
 //#region src/utils/methods.ts
