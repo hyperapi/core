@@ -1,4 +1,4 @@
-import type { IsEqual, IsNever, Merge, Simplify } from 'type-fest';
+import type { IsEqual, IsNever, Merge } from 'type-fest';
 import type { HyperAPIRequest } from '../request.js';
 import type { BaseRecord, EmptyObject } from './record.js';
 
@@ -15,20 +15,12 @@ export type Join<
 	ReqExtra extends BaseRecord,
 > = IsRecord<ReqExtra> extends true ? Merge<R, ReqExtra> : R;
 
-type SimpleMerge<Destination, Source> = Simplify<
-	{
-		[Key in keyof Destination as Key extends keyof Source
-			? never
-			: Key]: Destination[Key];
-	} & Source
->;
-
 export type Extend<
 	V1 extends BaseRecord,
 	V2 extends BaseRecord | void,
 > = IsRecord<V1> extends true
 	? IsRecord<V2> extends true
-		? SimpleMerge<V1, V2>
+		? Merge<V1, V2>
 		: V1
 	: IsRecord<V2> extends true
 		? Exclude<V2, void>

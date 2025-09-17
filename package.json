@@ -30,7 +30,8 @@
 	},
 	"dependencies": {
 		"itty-router": "5.0.22",
-		"neoevents": "0.3.0"
+		"neoevents": "0.3.0",
+		"type-fest": "4.41.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.1",
@@ -40,7 +41,6 @@
 		"oxlint": "1.3.0",
 		"publint": "0.3.12",
 		"tsdown": "0.14.2",
-		"type-fest": "4.41.0",
 		"typescript": "5.9.2",
 		"unplugin-unused": "0.5.2",
 		"valibot": "1.1.0",
