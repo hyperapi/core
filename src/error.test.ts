@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { expect, test } from 'vitest';
 import { HyperAPIBusyError } from './api-errors.js';
 import { HyperAPIError } from './error.js';
@@ -11,6 +9,7 @@ test('data', () => {
 	expect(error.data?.foo).toBe('bar');
 });
 
+// oxlint-disable-next-line typescript/no-explicit-any
 class HyperAPICustomError extends HyperAPIError<any> {
 	code = 1001;
 	description = 'This is a custom error';

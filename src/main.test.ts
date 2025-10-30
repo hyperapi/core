@@ -1,3 +1,5 @@
+// oxlint-disable max-lines-per-function, max-nested-callbacks
+
 import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { HyperAPITestDriver, TestRequest } from '../test/driver.js';
 import { HyperAPI } from './main.js';

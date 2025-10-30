@@ -22,7 +22,7 @@ type HyperAPIIttyRouter = IttyRouterType<
  * @returns The new IttyRouter.
  */
 export function createRouter(path_root: string): HyperAPIIttyRouter {
-	// eslint-disable-next-line new-cap
+	// oxlint-disable-next-line new-cap
 	const router: HyperAPIIttyRouter = IttyRouter();
 
 	const routes = readFiles(path_root);
@@ -42,18 +42,18 @@ function fillRouter(routes: WalkResult, router: HyperAPIIttyRouter) {
 	for (const route of routes) {
 		if ('method' in route) {
 			// console.log('[fillRouter]', route.method, route.route);
-			router[route.method](
-				route.route,
-				(request) =>
-					({
-						async getHandler() {
-							const module_ = await import(route.path);
-							return module_.default;
-						},
-						path: route.path,
-						args: request.params,
-					}) as HyperAPIIttyRouterResponse,
-			);
+			router[route.method](route.route, (request) => {
+				const r_ = {
+					async getHandler() {
+						const module_ = await import(route.path);
+						return module_.default;
+					},
+					path: route.path,
+					args: request.params,
+				} as HyperAPIIttyRouterResponse;
+
+				return r_;
+			});
 		} else if ('children' in route) {
 			fillRouter(route.children, router);
 		}

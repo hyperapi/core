@@ -98,7 +98,7 @@ export class HyperAPI<
 
 		// console.log('Processing request:', request);
 
-		let request_external = {} as ReqExtra;
+		const request_external = {} as ReqExtra;
 
 		try {
 			if (request.path.startsWith('/') !== true) {
@@ -113,10 +113,7 @@ export class HyperAPI<
 					...request_external,
 				});
 				if (request_added !== undefined) {
-					request_external = {
-						...request_external,
-						...request_added,
-					};
+					Object.assign(request_external, request_added);
 				}
 			}
 
@@ -172,7 +169,7 @@ export class HyperAPI<
 		}
 	}
 
-	// eslint-disable-next-line class-methods-use-this
+	// oxlint-disable-next-line class-methods-use-this
 	module(): HyperAPIModule<Req, ReqExtra> {
 		return new HyperAPIModule<Req, ReqExtra>();
 	}

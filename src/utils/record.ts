@@ -8,11 +8,11 @@ export type EmptyObject = Record<symbol, never>;
  */
 export function isRecord(value: unknown): value is BaseRecord {
 	return (
-		typeof value === 'object' &&
-		value !== null &&
-		!Array.isArray(value) &&
-		value.constructor === Object &&
-		Object.prototype.toString.call(value) === '[object Object]'
+		typeof value === 'object'
+		&& value !== null
+		&& !Array.isArray(value)
+		&& value.constructor === Object
+		&& Object.prototype.toString.call(value) === '[object Object]'
 	);
 }
 

@@ -1,5 +1,3 @@
-/* eslint-disable unicorn/filename-case */
-
 import { hyperApi } from '../../../server.js';
 
 export default hyperApi.module().action((request) => {

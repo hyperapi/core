@@ -66,15 +66,12 @@ export class HyperAPIModule<
 	async _run(
 		request: Req,
 	): Promise<Join<Req, Extend<ReqExtra, { response?: unknown }>>> {
-		let request_result = request;
+		const request_result = request;
 		for (const fn of this.chain) {
 			// oxlint-disable-next-line no-await-in-loop
 			const request_add = await fn(request_result as Join<Req, ReqExtra>);
 			if (request_add) {
-				request_result = {
-					...request_result,
-					...request_add,
-				};
+				Object.assign(request_result, request_add);
 			}
 		}
 

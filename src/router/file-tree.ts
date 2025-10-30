@@ -150,10 +150,9 @@ export function readFiles(path_given: string, _state?: WalkState): WalkResult {
 /**
  * Sorts the routes in the given result.
  * @param result The result to sort.
- * @returns -
  */
 function sortRoutes(result: WalkResult) {
-	return result.sort((a, b) => {
+	result.sort((a, b) => {
 		if (a.specificity.type !== b.specificity.type) {
 			return a.specificity.type - b.specificity.type;
 		}

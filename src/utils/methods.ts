@@ -15,13 +15,13 @@ export type HyperAPIMethod =
  */
 export function isHyperApiMethod(method: unknown): method is HyperAPIMethod {
 	return (
-		method === 'DELETE' ||
-		method === 'GET' ||
-		method === 'HEAD' ||
-		method === 'OPTIONS' ||
-		method === 'PATCH' ||
-		method === 'POST' ||
-		method === 'PUT' ||
-		method === 'UNKNOWN'
+		method === 'DELETE'
+		|| method === 'GET'
+		|| method === 'HEAD'
+		|| method === 'OPTIONS'
+		|| method === 'PATCH'
+		|| method === 'POST'
+		|| method === 'PUT'
+		|| method === 'UNKNOWN'
 	);
 }

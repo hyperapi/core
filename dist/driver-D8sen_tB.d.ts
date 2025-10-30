@@ -19,12 +19,6 @@ type EmptyObject = Record<symbol, never>;
 * @returns -
 */
 declare function isRecord(value: unknown): value is BaseRecord;
-/**
-* Checks if there are common keys in both object.
-* @param value1 -
-* @param value2 -
-* @returns -
-*/
 //#endregion
 //#region src/request.d.ts
 type HyperAPIRequestArgs = BaseRecord;
@@ -83,11 +77,6 @@ declare class HyperAPIModule<Req extends HyperAPIRequest<BaseRecord>, ReqExtra e
 //#endregion
 //#region src/response.d.ts
 type HyperAPIResponse = HyperAPIModuleResponse | HyperAPIError<any>;
-/**
-* Checks if the given value is a HyperAPIResponse.
-* @param response - The value to check.
-* @returns True if the value is a HyperAPIResponse, false otherwise.
-*/
 //#endregion
 //#region src/driver.d.ts
 declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extends NeoEventTarget<{
@@ -99,4 +88,4 @@ declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extend
   protected emitRequest(request: R): Promise<HyperAPIResponse>;
 }
 //#endregion
-export { BaseRecord, EmptyObject, Extend, HyperAPIDriver, HyperAPIError, HyperAPIErrorData, HyperAPIMethod, HyperAPIModule, HyperAPIModuleResponse, HyperAPIRequest, HyperAPIRequestArgs, HyperAPIResponse, Join, isHyperApiMethod, isRecord };
+export { Extend as a, HyperAPIErrorData as c, BaseRecord as d, EmptyObject as f, isHyperApiMethod as h, HyperAPIModuleResponse as i, HyperAPIRequest as l, HyperAPIMethod as m, HyperAPIResponse as n, Join as o, isRecord as p, HyperAPIModule as r, HyperAPIError as s, HyperAPIDriver as t, HyperAPIRequestArgs as u };

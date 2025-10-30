@@ -1,7 +1,10 @@
 const require_record = require('./record-D97pjgdq.cjs');
-const node_path = require_record.__toESM(require("node:path"));
-const itty_router = require_record.__toESM(require("itty-router"));
-const node_fs = require_record.__toESM(require("node:fs"));
+let node_path = require("node:path");
+node_path = require_record.__toESM(node_path);
+let itty_router = require("itty-router");
+itty_router = require_record.__toESM(itty_router);
+let node_fs = require("node:fs");
+node_fs = require_record.__toESM(node_fs);
 
 //#region src/error.ts
 var HyperAPIError = class extends Error {
@@ -130,13 +133,10 @@ var HyperAPIModule = class {
 		return this;
 	}
 	async _run(request) {
-		let request_result = request;
+		const request_result = request;
 		for (const fn of this.chain) {
 			const request_add = await fn(request_result);
-			if (request_add) request_result = {
-				...request_result,
-				...request_add
-			};
+			if (request_add) Object.assign(request_result, request_add);
 		}
 		return request_result;
 	}
@@ -303,10 +303,9 @@ function readFiles(path_given, _state) {
 /**
 * Sorts the routes in the given result.
 * @param result The result to sort.
-* @returns -
 */
 function sortRoutes(result) {
-	return result.sort((a, b) => {
+	result.sort((a, b) => {
 		if (a.specificity.type !== b.specificity.type) return a.specificity.type - b.specificity.type;
 		if (a.specificity.static_length !== b.specificity.static_length) return b.specificity.static_length - a.specificity.static_length;
 		if (a.specificity.position !== b.specificity.position) return a.specificity.position - b.specificity.position;
@@ -323,8 +322,7 @@ function sortRoutes(result) {
 */
 function createRouter(path_root) {
 	const router = (0, itty_router.IttyRouter)();
-	const routes = readFiles(path_root);
-	fillRouter(routes, router);
+	fillRouter(readFiles(path_root), router);
 	return router;
 }
 /**
@@ -333,14 +331,15 @@ function createRouter(path_root) {
 * @param router The IttyRouter to attach to.
 */
 function fillRouter(routes, router) {
-	for (const route of routes) if ("method" in route) router[route.method](route.route, (request) => ({
-		async getHandler() {
-			const module_ = await import(route.path);
-			return module_.default;
-		},
-		path: route.path,
-		args: request.params
-	}));
+	for (const route of routes) if ("method" in route) router[route.method](route.route, (request) => {
+		return {
+			async getHandler() {
+				return (await import(route.path)).default;
+			},
+			path: route.path,
+			args: request.params
+		};
+	});
 	else if ("children" in route) fillRouter(route.children, router);
 }
 /**
@@ -357,11 +356,10 @@ async function useRouter(router, method, path) {
 		url
 	});
 	if (result) return result;
-	const result_unknown = await router.fetch({
+	return await router.fetch({
 		method: "UNKNOWN",
 		url
-	});
-	return result_unknown ? "INVALID" : "NOT_EXISTS";
+	}) ? "INVALID" : "NOT_EXISTS";
 }
 
 //#endregion
@@ -402,7 +400,7 @@ var HyperAPI = class {
 		return this;
 	}
 	async processRequest(request) {
-		let request_external = {};
+		const request_external = {};
 		try {
 			if (request.path.startsWith("/") !== true) request.path = `/${request.path}`;
 			for (const fn of this.hooks_before_router) {
@@ -410,10 +408,7 @@ var HyperAPI = class {
 					...request,
 					...request_external
 				});
-				if (request_added !== void 0) request_external = {
-					...request_external,
-					...request_added
-				};
+				if (request_added !== void 0) Object.assign(request_external, request_added);
 			}
 			const router_response = await useRouter(this.router, request.method, request.path);
 			if (router_response === "INVALID") throw new HyperAPIUnknownMethodNotAllowedError();
@@ -423,8 +418,7 @@ var HyperAPI = class {
 				...request.args,
 				...router_response.args
 			};
-			const handler = await router_response.getHandler();
-			const { response } = await handler._run({
+			const { response } = await (await router_response.getHandler())._run({
 				...request,
 				...request_external
 			});

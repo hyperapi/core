@@ -1,5 +1,6 @@
 const require_record = require('./record-D97pjgdq.cjs');
-const neoevents = require_record.__toESM(require("neoevents"));
+let neoevents = require("neoevents");
+neoevents = require_record.__toESM(neoevents);
 
 //#region src/driver.ts
 var HyperAPIDriver = class extends neoevents.NeoEventTarget {

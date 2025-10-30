@@ -19,4 +19,4 @@ function hasCommonKeys(value1, value2) {
 }
 
 //#endregion
-export { hasCommonKeys, isRecord };
+export { isRecord as n, hasCommonKeys as t };

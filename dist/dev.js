@@ -1,4 +1,4 @@
-import { isRecord } from "./record-DFObD9mD.js";
+import { n as isRecord } from "./record-BeJ2ZKAR.js";
 import { NeoEvent, NeoEventTarget } from "neoevents";
 
 //#region src/driver.ts
