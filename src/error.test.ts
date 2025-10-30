@@ -11,8 +11,8 @@ test('data', () => {
 
 // oxlint-disable-next-line typescript/no-explicit-any
 class HyperAPICustomError extends HyperAPIError<any> {
-	code = 1001;
-	description = 'This is a custom error';
+	override code = 1001;
+	override description = 'This is a custom error';
 }
 
 test('custom error', () => {

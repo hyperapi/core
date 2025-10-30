@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
-import { EmptyObject } from './record.js';
-import { Extend } from './types.js';
+import type { EmptyObject } from './record.js';
+import type { Extend } from './types.js';
 
 test('Extend', () => {
 	// type T = Extend<{ a: string }, { b: number }>;

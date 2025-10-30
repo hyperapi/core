@@ -47,9 +47,9 @@
 		"vitest": "4.0.4"
 	},
 	"scripts": {
-		"build": "tsdown src/main.ts src/dev.ts --publint --unused --dts --format esm --format cjs",
+		"build": "tsdown src/main.ts src/dev.ts --clean --tsconfig tsconfig.main.json --publint --unused --dts --format esm --format cjs",
 		"check": "bun run lint && bun run build && bun run test",
-		"lint": "biome format && oxlint && eslint . && tsc && (cd test && tsc)",
+		"lint": "biome format && oxlint && eslint . && tsc -b",
 		"test": "npm run test:vitest && bun test --coverage",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},
