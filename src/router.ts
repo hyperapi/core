@@ -1,93 +1,105 @@
 import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';
 import type { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
-import { readFiles, type WalkResult } from './router/file-tree.js';
+import { getRoutes } from './router/file-tree.js';
 import type { HyperAPIMethod } from './utils/methods.js';
 import type { BaseRecord } from './utils/record.js';
 
+export type HyperAPIRouteData = {
+	method: HyperAPIMethod;
+	route: string;
+	file_path: string;
+};
 type HyperAPIIttyRouterResponse = {
-	getHandler: () => Promise<HyperAPIModule<HyperAPIRequest<BaseRecord>>>;
-	path: string;
+	route: string;
 	args: BaseRecord;
 };
-type HyperAPIIttyRouter = IttyRouterType<
-	IRequest,
-	[],
-	HyperAPIIttyRouterResponse
->;
+type HyperAPIRouterResponse = {
+	getHandler: () => Promise<HyperAPIModule<HyperAPIRequest<BaseRecord>>>;
+	route_data: HyperAPIRouteData;
+	args: BaseRecord;
+};
 
-/**
- * Creates new IttyRouter from filesystem.
- * @param path_root The path to scan.
- * @returns The new IttyRouter.
- */
-export function createRouter(path_root: string): HyperAPIIttyRouter {
-	// oxlint-disable-next-line new-cap
-	const router: HyperAPIIttyRouter = IttyRouter();
+export class HyperAPIRouter {
+	#router: IttyRouterType<
+		IRequest,
+		[],
+		HyperAPIIttyRouterResponse | undefined
+	> = IttyRouter();
+	#routes_map = new Map<string, Map<HyperAPIMethod, HyperAPIRouterResponse>>();
 
-	const routes = readFiles(path_root);
-	// console.log(Bun.inspect(routes, { colors: true }));
+	constructor(path_root: string) {
+		// console.log('[HyperAPIRouter]', '----------');
+		for (const route of getRoutes(path_root)) {
+			// console.log('[HyperAPIRouter]', route.method, route.route);
 
-	fillRouter(routes, router);
-
-	return router;
-}
-
-/**
- * Attaches routes to IttyRouter.
- * @param routes The routes to attach.
- * @param router The IttyRouter to attach to.
- */
-function fillRouter(routes: WalkResult, router: HyperAPIIttyRouter) {
-	for (const route of routes) {
-		if ('method' in route) {
-			// console.log('[fillRouter]', route.method, route.route);
-			router[route.method](route.route, (request) => {
-				const r_ = {
-					async getHandler() {
-						const module_ = await import(route.path);
-						return module_.default;
-					},
-					path: route.path,
-					args: request.params,
-				} as HyperAPIIttyRouterResponse;
-
-				return r_;
+			const router_response: HyperAPIRouterResponse = Object.freeze({
+				async getHandler() {
+					const module_ = await import(route.file_path);
+					return module_.default;
+				},
+				route_data: route,
+				args: {},
 			});
-		} else if ('children' in route) {
-			fillRouter(route.children, router);
+
+			let methods_by_route = this.#routes_map.get(route.route);
+			if (methods_by_route) {
+				methods_by_route.set(route.method, router_response);
+			} else {
+				methods_by_route = new Map();
+				// oxlint-disable-next-line unicorn/no-immediate-mutation
+				methods_by_route.set(route.method, router_response);
+				this.#routes_map.set(route.route, methods_by_route);
+			}
 		}
-	}
-}
 
-/**
- * Fetches data from router.
- * @param router The router to fetch data from.
- * @param method The HTTP method.
- * @param path The path to fetch data from.
- * @returns The response.
- */
-export async function useRouter(
-	router: HyperAPIIttyRouter,
-	method: HyperAPIMethod,
-	path: string,
-): Promise<HyperAPIIttyRouterResponse | 'INVALID' | 'NOT_EXISTS'> {
-	// console.log('[useRouter]', method, path);
-	const url = `file://${path}`;
-	const result = await router.fetch({
-		method,
-		url,
-	});
+		// console.log('[HyperAPIRouter]', 'routes_map', this.#routes_map);
 
-	if (result) {
-		// console.log('result', result);
-		return result;
+		for (const route of this.#routes_map.keys()) {
+			this.#router.all(route, (request) => {
+				return {
+					route,
+					args: request.params,
+				};
+			});
+		}
+
+		// console.log('[HyperAPIRouter]', '----------');
+		// console.log('[HyperAPIRouter]', 'routes_map', this.#routes_map);
+		// console.log('[HyperAPIRouter]', '----------');
 	}
 
-	const result_unknown = await router.fetch({
-		method: 'UNKNOWN',
-		url,
-	});
+	async fetch(
+		method: HyperAPIMethod,
+		path: string,
+	): Promise<HyperAPIRouterResponse | 'METHOD_NOT_ALLOWED' | 'NOT_EXISTS'> {
+		// console.log('[useRouter]', method, path);
+		const url = `file://${path}`;
+		const result = await this.#router.fetch({
+			method,
+			url,
+		});
 
-	return result_unknown ? 'INVALID' : 'NOT_EXISTS';
+		// if itty found a route
+		if (result) {
+			const route_map = this.#routes_map.get(result.route);
+			if (!route_map) {
+				throw new Error(
+					`Internal HyperAPI error: route not found for ${result.route}`,
+				);
+			}
+
+			const router_response = route_map.get(method);
+			if (!router_response) {
+				return 'METHOD_NOT_ALLOWED';
+			}
+
+			return {
+				...router_response,
+				args: result.args,
+			};
+		}
+
+		return 'NOT_EXISTS';
+	}
 }

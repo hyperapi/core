@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-invalid-void-type
+
 import type { Promisable } from 'type-fest';
 import type { HyperAPIRequest } from './request.js';
 import type { BaseRecord } from './utils/record.js';
@@ -28,11 +30,11 @@ export class HyperAPIModule<
 	set<const K extends string, V>(
 		key: K,
 		fn: (request: Join<Req, ReqExtra>) => Promisable<V>,
-	): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
+	): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
 	set<const K extends string, V>(
 		key: K,
 		value: V,
-	): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
+	): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
 	set<const K extends string, V>(key: K, arg1: unknown) {
 		this.chain.push(async (request) => {
 			const value = typeof arg1 === 'function' ? await arg1(request) : arg1;
@@ -43,7 +45,7 @@ export class HyperAPIModule<
 
 		return this as unknown as HyperAPIModule<
 			Req,
-			Extend<ReqExtra, { [I in K]: V }>
+			Extend<ReqExtra, Record<K, V>>
 		>;
 	}
 

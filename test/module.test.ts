@@ -3,13 +3,13 @@ import { driver } from './server.js';
 
 describe('action', () => {
 	test('async', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/async');
+		const [status, data] = await driver.trigger('UNDEF', 'module/async');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ foo: 1 });
 	});
 
 	test('returns void', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/void');
+		const [status, data] = await driver.trigger('UNDEF', 'module/void');
 		expect(status).toBe(true);
 		expect(data).toBeUndefined();
 	});
@@ -17,19 +17,19 @@ describe('action', () => {
 
 describe('use', () => {
 	test('single', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/use');
+		const [status, data] = await driver.trigger('UNDEF', 'module/use');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 1 });
 	});
 
 	test('async', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/use/async');
+		const [status, data] = await driver.trigger('UNDEF', 'module/use/async');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 1 });
 	});
 
 	test('multiple', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/use/multiple');
+		const [status, data] = await driver.trigger('UNDEF', 'module/use/multiple');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({
 			extra: [1, 2],
@@ -37,13 +37,13 @@ describe('use', () => {
 	});
 
 	test('override', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/use/override');
+		const [status, data] = await driver.trigger('UNDEF', 'module/use/override');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 2 });
 	});
 
 	test('error', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/use/error');
+		const [status, data] = await driver.trigger('UNDEF', 'module/use/error');
 		expect(status).toBe(false);
 		expect(data).toStrictEqual({
 			code: 2,
@@ -54,19 +54,19 @@ describe('use', () => {
 
 describe('set', () => {
 	test('single', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/set');
+		const [status, data] = await driver.trigger('UNDEF', 'module/set');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 1 });
 	});
 
 	test('async', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/set/async');
+		const [status, data] = await driver.trigger('UNDEF', 'module/set/async');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 1 });
 	});
 
 	test('multiple', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/set/multiple');
+		const [status, data] = await driver.trigger('UNDEF', 'module/set/multiple');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({
 			extra: [1, 2],
@@ -74,13 +74,13 @@ describe('set', () => {
 	});
 
 	test('override', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/set/override');
+		const [status, data] = await driver.trigger('UNDEF', 'module/set/override');
 		expect(status).toBe(true);
 		expect(data).toStrictEqual({ extra: 2 });
 	});
 
 	test('error', async () => {
-		const [status, data] = await driver.trigger('GET', 'module/set/error');
+		const [status, data] = await driver.trigger('UNDEF', 'module/set/error');
 		expect(status).toBe(false);
 		expect(data).toStrictEqual({
 			code: 2,

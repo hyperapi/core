@@ -1,3 +1,5 @@
+// oxlint-disable typescript/no-invalid-void-type
+
 import nodePath from 'node:path';
 import type { Promisable } from 'type-fest';
 import {
@@ -11,7 +13,7 @@ import { HyperAPIError } from './error.js';
 import { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
 import { type HyperAPIResponse, isHyperAPIResponse } from './response.js';
-import { createRouter, useRouter } from './router.js';
+import { HyperAPIRouter } from './router.js';
 import {
 	type BaseRecord,
 	type EmptyObject,
@@ -25,14 +27,14 @@ export class HyperAPI<
 	Req extends HyperAPIRequest,
 	ReqExtra extends BaseRecord = EmptyObject,
 > {
-	private router;
+	#router;
 	private off: () => void;
 
 	constructor(
 		driver: HyperAPIDriver<Req>,
 		root: string = nodePath.join(ENTRYPOINT_PATH, 'hyper-api'),
 	) {
-		this.router = createRouter(root);
+		this.#router = new HyperAPIRouter(root);
 
 		this.off = driver.on('request', async (event) => {
 			const [request_external, response] = await this.processRequest(
@@ -118,13 +120,12 @@ export class HyperAPI<
 			}
 
 			// 3. *Core* uses a file router...
-			const router_response = await useRouter(
-				this.router,
+			const router_response = await this.#router.fetch(
 				request.method,
 				request.path,
 			);
 
-			if (router_response === 'INVALID') {
+			if (router_response === 'METHOD_NOT_ALLOWED') {
 				throw new HyperAPIUnknownMethodNotAllowedError();
 			}
 
@@ -144,6 +145,13 @@ export class HyperAPI<
 
 			// 5. *Core* imports the matched module file...
 			const handler = await router_response.getHandler();
+			if (handler === undefined) {
+				// oxlint-disable-next-line no-console
+				console.error(
+					`There is no handler in ${router_response.route_data.file_path}. Did you forget "export default" in the module?`,
+				);
+				throw new HyperAPIInternalError();
+			}
 
 			// 6. *Core* calls the module
 			const { response } = await handler._run({
@@ -152,7 +160,7 @@ export class HyperAPI<
 			});
 			if (isHyperAPIResponse(response) !== true) {
 				throw new TypeError(
-					`Invalid response type from module ${router_response.path}. Expected Response, HyperAPIError, array, object or undefined.`,
+					`Invalid response type from module ${router_response.route_data.file_path}. Expected Response, HyperAPIError, array, object or undefined.`,
 				);
 			}
 

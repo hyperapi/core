@@ -1,5 +1,5 @@
-const RE_OPTIONAL_CATCH_ALL = /^\[\[\.\.\.([a-z_][\da-z_]*)\]\]$/i;
-const RE_GREEDY = /^\[\.\.\.([a-z_][\da-z_]*)\]$/i;
+const RE_OPTIONAL_CATCH_ALL = /^\[\[\.\.\.(?<key>[a-z_][\da-z_]*)\]\]$/iu;
+const RE_GREEDY = /^\[\.\.\.(?<key>[a-z_][\da-z_]*)\]$/iu;
 
 type ParsedFilename = {
 	self?: boolean;
@@ -38,7 +38,7 @@ export function parseFilename(name: string): ParsedFilename {
 		return {
 			self: true,
 			route: {
-				part: `:${match_optional_catch_all[1]}+`,
+				part: `:${match_optional_catch_all.groups?.key}+`,
 				specificity: {
 					type: 3,
 					static_length: 0,
@@ -52,7 +52,7 @@ export function parseFilename(name: string): ParsedFilename {
 	if (match_greedy) {
 		return {
 			route: {
-				part: `:${match_greedy[1]}+`,
+				part: `:${match_greedy.groups?.key}+`,
 				specificity: {
 					type: 3,
 					static_length: 0,
@@ -64,7 +64,8 @@ export function parseFilename(name: string): ParsedFilename {
 	let has_optional = false;
 	let static_length = name.length;
 	const route_part = name.replaceAll(
-		/(\[([a-z_][\da-z_]*)\]|\[\[([a-z_][\da-z_]*)\]\])([^\da-z_]|$)/gi,
+		// eslint-disable-next-line prefer-named-capture-group
+		/(\[([a-z_][\da-z_]*)\]|\[\[([a-z_][\da-z_]*)\]\])([^\da-z_]|$)/giu,
 		(...args) => {
 			static_length -= args[1].length;
 

@@ -8,29 +8,7 @@ function repeat(times: number): number[] {
 	return Array.from({ length: times }, (_, i) => i);
 }
 
-describe('ALL', () => {
-	test('with GET', async () => {
-		const [success, response] = await driver.trigger('GET', 'router/all');
-		expect(success).toBe(true);
-		expect(response).toStrictEqual({
-			path: 'router/all.ts',
-			method: 'GET',
-			args: {},
-		});
-	});
-
-	test('with POST', async () => {
-		const [success, response] = await driver.trigger('POST', 'router/all');
-		expect(success).toBe(true);
-		expect(response).toStrictEqual({
-			path: 'router/all.ts',
-			method: 'POST',
-			args: {},
-		});
-	});
-});
-
-describe('only GET', () => {
+describe('route supports multiple methods', () => {
 	test('with GET', async () => {
 		const [success, response] = await driver.trigger('GET', 'router/x');
 		expect(success).toBe(true);
@@ -41,18 +19,25 @@ describe('only GET', () => {
 		});
 	});
 
-	// test('with POST', async () => {
-	// 	const [success, response, http] = await driver.trigger(
-	// 		'POST',
-	// 		'router/x',
-	// 	);
-	// 	expect(success).toBe(false);
-	// 	expect(response).toStrictEqual({
-	// 		code: 5,
-	// 		description: 'Unknown method called',
-	// 	});
-	// 	expect(http.status).toBe(405);
-	// });
+	test('with POST', async () => {
+		const [success, response, http] = await driver.trigger('POST', 'router/x');
+		expect(success).toBe(false);
+		expect(response).toStrictEqual({
+			code: 5,
+			description: 'Unknown method called',
+		});
+		expect(http.status).toBe(405);
+	});
+
+	test('with UNDEF', async () => {
+		const [success, response] = await driver.trigger('UNDEF', 'router/x');
+		expect(success).toBe(true);
+		expect(response).toStrictEqual({
+			path: 'router/x.ts',
+			method: 'UNDEF',
+			args: {},
+		});
+	});
 });
 
 test('only method in the filename', async () => {
@@ -76,52 +61,52 @@ describe.each(repeat(10))('slug', () => {
 
 	test('filename with slug in the end', async () => {
 		const [success, response] = await driver_slug.trigger(
-			'GET',
+			'UNDEF',
 			'router/slug/x-123',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/slug/x-[slug].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: '123' },
 		});
 	});
 
 	test('filename with slug in the middle', async () => {
 		const [success, response] = await driver_slug.trigger(
-			'GET',
+			'UNDEF',
 			'router/slug/x-123-x',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/slug/x-[slug]-x.ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: '123' },
 		});
 	});
 
 	test('filename with slug only', async () => {
 		const [success, response] = await driver_slug.trigger(
-			'GET',
+			'UNDEF',
 			'router/slug/123',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/slug/[slug].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: '123' },
 		});
 	});
 
 	test('directory with slug only', async () => {
 		const [success, response] = await driver_slug.trigger(
-			'GET',
+			'UNDEF',
 			'router/slug/123/x',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/slug/[slug]/x.ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: '123' },
 		});
 	});
@@ -131,26 +116,26 @@ describe('optional slug', () => {
 	describe('filename with slug and optional slug', () => {
 		test('pass optional', async () => {
 			const [success, response] = await driver.trigger(
-				'GET',
+				'UNDEF',
 				'router/optional-slug/image.png',
 			);
 			expect(success).toBe(true);
 			expect(response).toStrictEqual({
 				path: 'router/optional-slug/[name].[[ext]].ts',
-				method: 'GET',
+				method: 'UNDEF',
 				args: { name: 'image', ext: 'png' },
 			});
 		});
 
 		test('omit optional', async () => {
 			const [success, response] = await driver.trigger(
-				'GET',
+				'UNDEF',
 				'router/optional-slug/image',
 			);
 			expect(success).toBe(true);
 			expect(response).toStrictEqual({
 				path: 'router/optional-slug/[name].[[ext]].ts',
-				method: 'GET',
+				method: 'UNDEF',
 				args: { name: 'image', ext: undefined },
 			});
 		});
@@ -159,7 +144,7 @@ describe('optional slug', () => {
 
 describe('catch all', () => {
 	test('0 level deep', async () => {
-		const [success, response] = await driver.trigger('GET', 'router/catch');
+		const [success, response] = await driver.trigger('UNDEF', 'router/catch');
 		expect(success).toBe(false);
 		expect(response).toStrictEqual({
 			code: 5,
@@ -168,24 +153,27 @@ describe('catch all', () => {
 	});
 
 	test('1 level deep', async () => {
-		const [success, response] = await driver.trigger('GET', 'router/catch/foo');
+		const [success, response] = await driver.trigger(
+			'UNDEF',
+			'router/catch/foo',
+		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/catch/[...slug].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: 'foo' },
 		});
 	});
 
 	test('3 level deep', async () => {
 		const [success, response] = await driver.trigger(
-			'GET',
+			'UNDEF',
 			'router/catch/foo/bar/baz',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/catch/[...slug].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: 'foo/bar/baz' },
 		});
 	});
@@ -194,49 +182,49 @@ describe('catch all', () => {
 describe('optional catch all', () => {
 	test('0 level deep', async () => {
 		const [success, response] = await driver.trigger(
-			'GET',
+			'UNDEF',
 			'router/optional-catch',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/optional-catch/[[...slug]].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: {},
 		});
 	});
 
 	test('1 level deep', async () => {
 		const [success, response] = await driver.trigger(
-			'GET',
+			'UNDEF',
 			'router/optional-catch/foo',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/optional-catch/[[...slug]].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: 'foo' },
 		});
 	});
 
 	test('3 level deep', async () => {
 		const [success, response] = await driver.trigger(
-			'GET',
+			'UNDEF',
 			'router/optional-catch/foo/bar/baz',
 		);
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
 			path: 'router/optional-catch/[[...slug]].ts',
-			method: 'GET',
+			method: 'UNDEF',
 			args: { slug: 'foo/bar/baz' },
 		});
 	});
 });
 
 describe('errors', () => {
-	test('unknown method', async () => {
+	test('method does not exist', async () => {
 		const [success, response, http] = await driver.trigger(
-			'POST',
-			'router/unknown',
+			'GET',
+			'router/not-exists',
 		);
 		expect(success).toBe(false);
 		expect(response).toStrictEqual({

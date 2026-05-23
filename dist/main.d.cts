@@ -1,4 +1,4 @@
-import { a as Extend, c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, l as HyperAPIRequest, n as HyperAPIResponse, o as Join, r as HyperAPIModule, s as HyperAPIError, t as HyperAPIDriver } from "./driver-DO8IdV_Q.cjs";
+import { a as Extend, c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, l as HyperAPIRequest, n as HyperAPIResponse, o as Join, r as HyperAPIModule, s as HyperAPIError, t as HyperAPIDriver } from "./driver-D3TzFqUC.cjs";
 import { Promisable } from "type-fest";
 
 //#region src/api-errors.d.ts
@@ -75,7 +75,7 @@ declare class HyperAPIMethodNotAllowedError<D extends HyperAPIErrorData> extends
 //#endregion
 //#region src/main.d.ts
 declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends BaseRecord = EmptyObject> {
-  private router;
+  #private;
   private off;
   constructor(driver: HyperAPIDriver<Req>, root?: string);
   private hooks_before_router;

@@ -48,7 +48,7 @@ describe('hooks', () => {
 
 			expect(hyperApi).toBeInstanceOf(HyperAPI);
 
-			const [success, response] = await driver.trigger('GET', '/module/main');
+			const [success, response] = await driver.trigger('UNDEF', '/module/main');
 			expect(success).toBe(true);
 			expect(response).toStrictEqual({
 				external: 1,

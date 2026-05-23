@@ -2,7 +2,7 @@ import { NeoEvent, NeoEventTarget } from "neoevents";
 import { IsEqual, IsNever, Merge, Promisable } from "type-fest";
 
 //#region src/utils/methods.d.ts
-type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNKNOWN";
+type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNDEF";
 /**
 * Checks if the given value is a valid HyperAPI method.
 * @param method The HTTP method to check.
@@ -65,8 +65,8 @@ type HyperAPIModuleResponse = Response | BaseRecord | unknown[] | undefined;
 declare class HyperAPIModule<Req extends HyperAPIRequest<BaseRecord>, ReqExtra extends BaseRecord = never> {
   private chain;
   use<ReqAdd extends BaseRecord | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>): HyperAPIModule<Req, Extend<ReqExtra, ReqAdd>>;
-  set<const K extends string, V>(key: K, fn: (request: Join<Req, ReqExtra>) => Promisable<V>): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
-  set<const K extends string, V>(key: K, value: V): HyperAPIModule<Req, Extend<ReqExtra, { [I in K]: V }>>;
+  set<const K extends string, V>(key: K, fn: (request: Join<Req, ReqExtra>) => Promisable<V>): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
+  set<const K extends string, V>(key: K, value: V): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
   action<Resp extends HyperAPIModuleResponse | void>(fn: (request: Join<Req, ReqExtra>) => Promisable<Resp>): HyperAPIModule<Req, Extend<ReqExtra, {
     response: Resp;
   }>>;
