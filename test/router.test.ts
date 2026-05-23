@@ -27,6 +27,7 @@ describe('route supports multiple methods', () => {
 			description: 'HTTP method not allowed',
 		});
 		expect(http.status).toBe(405);
+		expect(http.headers?.Allow).toBe('GET');
 	});
 
 	test('with UNDEF', async () => {

@@ -16,9 +16,13 @@ var HyperAPIError = class extends Error {
 	httpStatus;
 	/** HTTP headers to return. */
 	httpHeaders;
-	constructor(data) {
+	constructor(data, httpHeaders) {
 		super();
 		if (require_dev.isRecord(data)) this.data = data;
+		if (require_dev.isRecord(httpHeaders)) this.httpHeaders = {
+			...this.httpHeaders,
+			...httpHeaders
+		};
 	}
 	get message() {
 		return `${this.description} (code ${this.code}).`;
@@ -102,8 +106,8 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 	description = "HTTP method not allowed";
 	httpStatus = 405;
 	constructor(allowed_methods) {
-		super();
-		this.httpHeaders = { Allow: allowed_methods.join(", ") };
+		const filtered_methods = allowed_methods.filter((method) => method !== "UNDEF");
+		super(void 0, filtered_methods.length > 0 ? { Allow: filtered_methods.join(", ") } : void 0);
 	}
 };
 

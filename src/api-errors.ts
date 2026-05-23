@@ -1,3 +1,4 @@
+import type { HyperAPIMethod } from './dev.js';
 import { HyperAPIError, type HyperAPIErrorData } from './error.js';
 
 export class HyperAPIAuthorizationError<
@@ -102,11 +103,17 @@ export class HyperAPIMethodNotAllowedError extends HyperAPIError {
 	override description = 'HTTP method not allowed';
 	override httpStatus = 405; // Method Not Allowed
 
-	constructor(allowed_methods: string[]) {
-		super();
-
-		this.httpHeaders = {
-			Allow: allowed_methods.join(', '),
-		};
+	constructor(allowed_methods: HyperAPIMethod[]) {
+		const filtered_methods = allowed_methods.filter(
+			(method) => method !== 'UNDEF',
+		);
+		super(
+			undefined,
+			filtered_methods.length > 0
+				? {
+						Allow: filtered_methods.join(', '),
+					}
+				: undefined,
+		);
 	}
 }

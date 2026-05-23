@@ -45,8 +45,8 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
   /** HTTP status code. */
   readonly httpStatus?: number;
   /** HTTP headers to return. */
-  protected httpHeaders?: Record<string, string>;
-  constructor(data?: D);
+  readonly httpHeaders?: Record<string, string>;
+  constructor(data?: D, httpHeaders?: Record<string, string>);
   get message(): string;
   /**
   * Creates response object.
@@ -88,4 +88,19 @@ declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest> extend
   protected emitRequest(request: R): Promise<HyperAPIResponse>;
 }
 //#endregion
-export { Extend as a, HyperAPIErrorData as c, BaseRecord as d, EmptyObject as f, isHyperApiMethod as h, HyperAPIModuleResponse as i, HyperAPIRequest as l, HyperAPIMethod as m, HyperAPIResponse as n, Join as o, isRecord as p, HyperAPIModule as r, HyperAPIError as s, HyperAPIDriver as t, HyperAPIRequestArgs as u };
+//#region src/router.d.ts
+type HyperAPIRouteData = {
+  method: HyperAPIMethod;
+  route: string;
+  file_path: string;
+};
+//#endregion
+//#region src/router/file-tree.d.ts
+/**
+* Returns the routes for the given path.
+* @param path The path to read files from.
+* @returns The routes for the given path.
+*/
+declare function getRoutes(path: string): HyperAPIRouteData[];
+//#endregion
+export { HyperAPIModuleResponse as a, HyperAPIError as c, HyperAPIRequestArgs as d, BaseRecord as f, isHyperApiMethod as g, HyperAPIMethod as h, HyperAPIModule as i, HyperAPIErrorData as l, isRecord as m, HyperAPIDriver as n, Extend as o, EmptyObject as p, HyperAPIResponse as r, Join as s, getRoutes as t, HyperAPIRequest as u };

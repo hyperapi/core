@@ -20,13 +20,20 @@ export class HyperAPIError<
 	/** HTTP status code. */
 	readonly httpStatus?: number;
 	/** HTTP headers to return. */
-	protected httpHeaders?: Record<string, string>;
+	readonly httpHeaders?: Record<string, string>;
 
-	constructor(data?: D) {
+	constructor(data?: D, httpHeaders?: Record<string, string>) {
 		super();
 
 		if (isRecord(data)) {
 			this.data = data;
+		}
+
+		if (isRecord(httpHeaders)) {
+			this.httpHeaders = {
+				...this.httpHeaders,
+				...httpHeaders,
+			};
 		}
 	}
 

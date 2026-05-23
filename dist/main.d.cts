@@ -1,4 +1,4 @@
-import { a as Extend, c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, l as HyperAPIRequest, n as HyperAPIResponse, o as Join, r as HyperAPIModule, s as HyperAPIError, t as HyperAPIDriver } from "./driver-D6UYcSS8.cjs";
+import { c as HyperAPIError, f as BaseRecord, h as HyperAPIMethod, i as HyperAPIModule, l as HyperAPIErrorData, n as HyperAPIDriver, o as Extend, p as EmptyObject, r as HyperAPIResponse, s as Join, u as HyperAPIRequest } from "./dev-CJvccZMY.cjs";
 import { Promisable } from "type-fest";
 
 //#region src/api-errors.d.ts
@@ -66,7 +66,7 @@ declare class HyperAPIMethodNotAllowedError extends HyperAPIError {
   code: number;
   description: string;
   httpStatus: number;
-  constructor(allowed_methods: string[]);
+  constructor(allowed_methods: HyperAPIMethod[]);
 }
 //#endregion
 //#region src/main.d.ts

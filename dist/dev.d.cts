@@ -1,20 +1,2 @@
-import { c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, h as isHyperApiMethod, i as HyperAPIModuleResponse, l as HyperAPIRequest, m as HyperAPIMethod, n as HyperAPIResponse, p as isRecord, r as HyperAPIModule, t as HyperAPIDriver, u as HyperAPIRequestArgs } from "./driver-D6UYcSS8.cjs";
-
-//#region src/router.d.ts
-
-type HyperAPIRouteData = {
-  method: HyperAPIMethod;
-  route: string;
-  file_path: string;
-};
-//#endregion
-//#region src/router/file-tree.d.ts
-
-/**
-* Returns the routes for the given path.
-* @param path The path to read files from.
-* @returns The routes for the given path.
-*/
-declare function getRoutes(path: string): HyperAPIRouteData[];
-//#endregion
-export { type BaseRecord, type EmptyObject, HyperAPIDriver, type HyperAPIErrorData, type HyperAPIMethod, type HyperAPIModule, type HyperAPIModuleResponse, type HyperAPIRequest, type HyperAPIRequestArgs, type HyperAPIResponse, getRoutes, isHyperApiMethod, isRecord };
+import { a as HyperAPIModuleResponse, d as HyperAPIRequestArgs, f as BaseRecord, g as isHyperApiMethod, h as HyperAPIMethod, i as HyperAPIModule, l as HyperAPIErrorData, m as isRecord, n as HyperAPIDriver, p as EmptyObject, r as HyperAPIResponse, t as getRoutes, u as HyperAPIRequest } from "./dev-CJvccZMY.cjs";
+export { BaseRecord, EmptyObject, HyperAPIDriver, HyperAPIErrorData, HyperAPIMethod, HyperAPIModule, HyperAPIModuleResponse, HyperAPIRequest, HyperAPIRequestArgs, HyperAPIResponse, getRoutes, isHyperApiMethod, isRecord };

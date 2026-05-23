@@ -14,7 +14,16 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 		method: HyperAPIMethod,
 		path: string,
 		args: Record<string, unknown> = {},
-	): Promise<[boolean, unknown, { status: number | undefined }]> {
+	): Promise<
+		[
+			boolean,
+			unknown,
+			{
+				status: number | undefined;
+				headers: Record<string, string> | undefined;
+			},
+		]
+	> {
 		const response = await this.emitRequest({
 			method,
 			path,
@@ -28,10 +37,11 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 				response.getResponse(),
 				{
 					status: response.httpStatus,
+					headers: response.httpHeaders,
 				},
 			];
 		}
 
-		return [true, response, { status: 200 }];
+		return [true, response, { status: 200, headers: {} }];
 	}
 }
