@@ -41,14 +41,6 @@ export class HyperAPIUnknownMethodError<
 	override httpStatus = 404; // Not Found
 }
 
-export class HyperAPIUnknownMethodNotAllowedError<
-	D extends HyperAPIErrorData,
-> extends HyperAPIError<D> {
-	override code = 5;
-	override description = 'Unknown method called';
-	override httpStatus = 405; // Method Not Allowed
-}
-
 export class HyperAPIObjectsLimitError<
 	D extends HyperAPIErrorData,
 > extends HyperAPIError<D> {
@@ -105,10 +97,16 @@ export class HyperAPIMaintenanceError<
 	override httpStatus = 503; // Service Unavailable
 }
 
-export class HyperAPIMethodNotAllowedError<
-	D extends HyperAPIErrorData,
-> extends HyperAPIError<D> {
+export class HyperAPIMethodNotAllowedError extends HyperAPIError {
 	override code = 14;
 	override description = 'HTTP method not allowed';
 	override httpStatus = 405; // Method Not Allowed
+
+	constructor(allowed_methods: string[]) {
+		super();
+
+		this.httpHeaders = {
+			Allow: allowed_methods.join(', '),
+		};
+	}
 }

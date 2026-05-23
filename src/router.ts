@@ -1,4 +1,8 @@
 import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';
+import {
+	HyperAPIMethodNotAllowedError,
+	HyperAPIUnknownMethodError,
+} from './api-errors.js';
 import type { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
 import { getRoutes } from './router/file-tree.js';
@@ -72,7 +76,7 @@ export class HyperAPIRouter {
 	async fetch(
 		method: HyperAPIMethod,
 		path: string,
-	): Promise<HyperAPIRouterResponse | 'METHOD_NOT_ALLOWED' | 'NOT_EXISTS'> {
+	): Promise<HyperAPIRouterResponse> {
 		// console.log('[useRouter]', method, path);
 		const url = `file://${path}`;
 		const result = await this.#router.fetch({
@@ -85,13 +89,13 @@ export class HyperAPIRouter {
 			const route_map = this.#routes_map.get(result.route);
 			if (!route_map) {
 				throw new Error(
-					`Internal HyperAPI error: route not found for ${result.route}`,
+					`Internal HyperAPI error: route not found for ${result.route}.`,
 				);
 			}
 
 			const router_response = route_map.get(method);
 			if (!router_response) {
-				return 'METHOD_NOT_ALLOWED';
+				throw new HyperAPIMethodNotAllowedError([...route_map.keys()]);
 			}
 
 			return {
@@ -100,6 +104,6 @@ export class HyperAPIRouter {
 			};
 		}
 
-		return 'NOT_EXISTS';
+		throw new HyperAPIUnknownMethodError();
 	}
 }

@@ -81,7 +81,7 @@ function parseFilename(name) {
 //#endregion
 //#region src/router/file-tree.ts
 const RE_EXT = /\.(?<ext>[cm]?[jt]s)$/iu;
-const RE_METHOD = /\.(?<method>delete|get|head|options|patch|post|put)$/iu;
+const RE_METHOD = /\.(?<method>delete|get|options|patch|post|put)$/iu;
 var WalkSpecificityPosition = /* @__PURE__ */ function(WalkSpecificityPosition$1) {
 	WalkSpecificityPosition$1[WalkSpecificityPosition$1["FILE_METHOD"] = 0] = "FILE_METHOD";
 	WalkSpecificityPosition$1[WalkSpecificityPosition$1["FILE_ALL"] = 1] = "FILE_ALL";
@@ -193,7 +193,7 @@ function sortRoutes(result) {
 * @returns -
 */
 function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "HEAD" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
+	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
 }
 
 //#endregion

@@ -2,7 +2,7 @@ import { NeoEvent, NeoEventTarget } from "neoevents";
 import { IsEqual, IsNever, Merge, Promisable } from "type-fest";
 
 //#region src/utils/methods.d.ts
-type HyperAPIMethod = "DELETE" | "GET" | "HEAD" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNDEF";
+type HyperAPIMethod = "DELETE" | "GET" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNDEF";
 /**
 * Checks if the given value is a valid HyperAPI method.
 * @param method The HTTP method to check.
@@ -45,7 +45,7 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
   /** HTTP status code. */
   readonly httpStatus?: number;
   /** HTTP headers to return. */
-  readonly httpHeaders?: Record<string, string>;
+  protected httpHeaders?: Record<string, string>;
   constructor(data?: D);
   get message(): string;
   /**

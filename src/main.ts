@@ -5,8 +5,6 @@ import type { Promisable } from 'type-fest';
 import {
 	HyperAPIInternalError,
 	HyperAPIInvalidParametersError,
-	HyperAPIUnknownMethodError,
-	HyperAPIUnknownMethodNotAllowedError,
 } from './api-errors.js';
 import type { HyperAPIDriver } from './driver.js';
 import { HyperAPIError } from './error.js';
@@ -124,14 +122,6 @@ export class HyperAPI<
 				request.method,
 				request.path,
 			);
-
-			if (router_response === 'METHOD_NOT_ALLOWED') {
-				throw new HyperAPIUnknownMethodNotAllowedError();
-			}
-
-			if (router_response === 'NOT_EXISTS') {
-				throw new HyperAPIUnknownMethodError();
-			}
 
 			// 4. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
 			if (hasCommonKeys(router_response.args, request.args)) {

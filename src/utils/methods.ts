@@ -1,7 +1,6 @@
 export type HyperAPIMethod =
 	| 'DELETE'
 	| 'GET'
-	| 'HEAD'
 	| 'OPTIONS'
 	| 'PATCH'
 	| 'POST'
@@ -17,7 +16,6 @@ export function isHyperApiMethod(method: unknown): method is HyperAPIMethod {
 	return (
 		method === 'DELETE'
 		|| method === 'GET'
-		|| method === 'HEAD'
 		|| method === 'OPTIONS'
 		|| method === 'PATCH'
 		|| method === 'POST'

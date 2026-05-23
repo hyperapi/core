@@ -23,8 +23,8 @@ describe('route supports multiple methods', () => {
 		const [success, response, http] = await driver.trigger('POST', 'router/x');
 		expect(success).toBe(false);
 		expect(response).toStrictEqual({
-			code: 5,
-			description: 'Unknown method called',
+			code: 14,
+			description: 'HTTP method not allowed',
 		});
 		expect(http.status).toBe(405);
 	});

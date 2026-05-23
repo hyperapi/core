@@ -1,4 +1,4 @@
-import { a as Extend, c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, l as HyperAPIRequest, n as HyperAPIResponse, o as Join, r as HyperAPIModule, s as HyperAPIError, t as HyperAPIDriver } from "./driver-CqzRTtaR.js";
+import { a as Extend, c as HyperAPIErrorData, d as BaseRecord, f as EmptyObject, l as HyperAPIRequest, n as HyperAPIResponse, o as Join, r as HyperAPIModule, s as HyperAPIError, t as HyperAPIDriver } from "./driver-rn9Cvnyf.js";
 import { Promisable } from "type-fest";
 
 //#region src/api-errors.d.ts
@@ -23,11 +23,6 @@ declare class HyperAPIForbiddenError<D extends HyperAPIErrorData> extends HyperA
   httpStatus: number;
 }
 declare class HyperAPIUnknownMethodError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
-  code: number;
-  description: string;
-  httpStatus: number;
-}
-declare class HyperAPIUnknownMethodNotAllowedError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
   code: number;
   description: string;
   httpStatus: number;
@@ -67,10 +62,11 @@ declare class HyperAPIMaintenanceError<D extends HyperAPIErrorData> extends Hype
   description: string;
   httpStatus: number;
 }
-declare class HyperAPIMethodNotAllowedError<D extends HyperAPIErrorData> extends HyperAPIError<D> {
+declare class HyperAPIMethodNotAllowedError extends HyperAPIError {
   code: number;
   description: string;
   httpStatus: number;
+  constructor(allowed_methods: string[]);
 }
 //#endregion
 //#region src/main.d.ts
@@ -89,4 +85,4 @@ declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends BaseRecord 
   destroy(): void;
 }
 //#endregion
-export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError, HyperAPIUnknownMethodNotAllowedError };
+export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError };

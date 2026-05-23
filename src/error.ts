@@ -20,7 +20,7 @@ export class HyperAPIError<
 	/** HTTP status code. */
 	readonly httpStatus?: number;
 	/** HTTP headers to return. */
-	readonly httpHeaders?: Record<string, string>;
+	protected httpHeaders?: Record<string, string>;
 
 	constructor(data?: D) {
 		super();

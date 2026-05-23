@@ -1,4 +1,4 @@
-import { i as getRoutes, n as isRecord, t as hasCommonKeys } from "./dev-tWkwy5d4.js";
+import { i as getRoutes, n as isRecord, t as hasCommonKeys } from "./dev-0Q4IU4qQ.js";
 import nodePath from "node:path";
 import { IttyRouter } from "itty-router";
 
@@ -60,11 +60,6 @@ var HyperAPIUnknownMethodError = class extends HyperAPIError {
 	description = "Unknown method called";
 	httpStatus = 404;
 };
-var HyperAPIUnknownMethodNotAllowedError = class extends HyperAPIError {
-	code = 5;
-	description = "Unknown method called";
-	httpStatus = 405;
-};
 var HyperAPIObjectsLimitError = class extends HyperAPIError {
 	code = 6;
 	description = "Too many objects requested";
@@ -104,6 +99,10 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 	code = 14;
 	description = "HTTP method not allowed";
 	httpStatus = 405;
+	constructor(allowed_methods) {
+		super();
+		this.httpHeaders = { Allow: allowed_methods.join(", ") };
+	}
 };
 
 //#endregion
@@ -186,15 +185,15 @@ var HyperAPIRouter = class {
 		});
 		if (result) {
 			const route_map = this.#routes_map.get(result.route);
-			if (!route_map) throw new Error(`Internal HyperAPI error: route not found for ${result.route}`);
+			if (!route_map) throw new Error(`Internal HyperAPI error: route not found for ${result.route}.`);
 			const router_response = route_map.get(method);
-			if (!router_response) return "METHOD_NOT_ALLOWED";
+			if (!router_response) throw new HyperAPIMethodNotAllowedError([...route_map.keys()]);
 			return {
 				...router_response,
 				args: result.args
 			};
 		}
-		return "NOT_EXISTS";
+		throw new HyperAPIUnknownMethodError();
 	}
 };
 
@@ -247,8 +246,6 @@ var HyperAPI = class {
 				if (request_added !== void 0) Object.assign(request_external, request_added);
 			}
 			const router_response = await this.#router.fetch(request.method, request.path);
-			if (router_response === "METHOD_NOT_ALLOWED") throw new HyperAPIUnknownMethodNotAllowedError();
-			if (router_response === "NOT_EXISTS") throw new HyperAPIUnknownMethodError();
 			if (hasCommonKeys(router_response.args, request.args)) throw new HyperAPIInvalidParametersError();
 			request.args = {
 				...request.args,
@@ -280,4 +277,4 @@ var HyperAPI = class {
 };
 
 //#endregion
-export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError, HyperAPIUnknownMethodNotAllowedError };
+export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError };
