@@ -34,16 +34,16 @@ Create a directory to hold your API methods (default: `hyper-api` in your projec
 ```
 my-project/
 ├── hyper-api/
-│   ├── users.get.ts
-│   ├── users.post.ts
+│   ├── users+get.ts
+│   ├── users+post.ts
 │   └── products/
-│       ├── [id].get.ts
-│       └── search.get.ts
+│       ├── [id]+get.ts
+│       └── search+get.ts
 ├── index.ts
 └── package.json
 ```
 
-HyperAPI uses file names to determine routes and HTTP methods:
+HyperAPI uses file names to determine routes and HTTP methods.
 
 #### Static Routes
 
@@ -51,7 +51,8 @@ File name will require an exact match. For example:
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/users.ts` | `/users` | `GET /users` |
+| `/users+get.ts` | `/users` | `GET /users` |
+| `/users+post.ts` | `/users` | `POST /users` |
 
 #### Index Routes
 
@@ -59,8 +60,8 @@ Files named as `index.ts` do not add `index` to the route.
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/index.ts` | `/` | `GET /` |
-| `/account/index.ts` | `/account` | `GET /account` |
+| `/index+get.ts` | `/` | `GET /` |
+| `/account/index+get.ts` | `/account` | `GET /account` |
 
 #### Route parameters
 
@@ -68,7 +69,7 @@ Wrap any route parameter with `[]` to capture it.
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/users/[id].ts` | `/users/:id` | `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
+| `/users/[id]+get.ts` | `/users/:id` | `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
 
 #### Optional route parameters
 
@@ -76,13 +77,13 @@ Make a route parameter optional by wrapping it name with `[[]]` (double brackets
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/users/[[id]].ts` | `/users/:id?` | `GET /users` with `{}` <br> `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
+| `/users/[[id]]+get.ts` | `/users/:id?` | `GET /users` with `{}` <br> `GET /users/123` with `{ id: "123" }` <br> `GET /users/foo` with `{ id: "foo" }` |
 
 You can mix parameters (both required and optional) in a single route segment:
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/files/[name].[[ext]].ts` | `/files/:name.:ext?` | `GET /files/image.png` with `{ name: "image", ext: "png" }` <br> `GET /files/README` with `{ name: "README" }` |
+| `/files/[name].[[ext]]+get.ts` | `/files/:name.:ext?` | `GET /files/image.png` with `{ name: "image", ext: "png" }` <br> `GET /files/README` with `{ name: "README" }` |
 
 #### Catch-all parameters
 
@@ -90,7 +91,7 @@ Route parameter names as `[...name]` consumes all remaining path segments. This 
 
 | File name | Route pattern | Matched requests | Unmatched requests |
 | - | - | - | - |
-| `/docs/[...path].ts` | `/docs/:path+` | `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` | `GET /docs` |
+| `/docs/[...path]+get.ts` | `/docs/:path+` | `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` | `GET /docs` |
 
 #### Optional catch-all parameters
 
@@ -98,15 +99,16 @@ Route parameter names as `[[...name]]` consumes all remaining path segments, but
 
 | File name | Route pattern | Matched requests |
 | - | - | - |
-| `/docs/[[...path]].ts` | `/docs/:path+` | `GET /docs` with `{}` <br> `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` |
+| `/docs/[[...path]]+get.ts` | `/docs/:path+` | `GET /docs` with `{}` <br> `GET /docs/foo` with `{ path: "foo" }` <br> `GET /docs/a/b/c` with `{ path: "a/b/c" }` |
 
 #### HTTP methods
 
-Add HTTP method before an extension to make route match only given HTTP method. By default, route will serve any incoming HTTP method.
+Add HTTP method before an extension to make route match only given HTTP method. If no method is specified, the route will match special `UNDEF` method which is used by drivers that do not rely on HTTP stack such as WebSockets or [Tasq](https://github.com/kirick-ts/tasq).
 
 | File name | Route pattern | Matched requests | Unmatched requests |
 | - | - | - | - |
-| `/user/[id].get.ts` | `/user/:id` | `GET /user/1` with `{ id: "1" }` | `POST /user/1` <br> `DELETE /user/1` |
+| `/user/[id]+get.ts` | `/user/:id` | `GET /user/1` with `{ id: "1" }` | `POST /user/1` <br> `DELETE /user/1` |
+| `/user/[id].ts` | `/user/:id` | `UNDEF /user/1` with `{ id: "1" }` | `GET /user/1` <br> `POST /user/1` <br> `DELETE /user/1` |
 
 But you can not use HTTP method in the filename if there is no name for the route. If you want to serve `POST /account`, create file `/account.post.ts` or `account/index.post.ts`, not just `account/post.ts`.
 
@@ -131,7 +133,7 @@ console.log('API server running on http://localhost:3000');
 
 ### 3. Create your API handlers
 
-Example of a basic endpoint (`hyper-api/hello.get.ts`):
+Example of a basic endpoint (`hyper-api/hello+get.ts`):
 
 ```typescript
 import * as v from 'valibot';

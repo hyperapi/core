@@ -1,8 +1,8 @@
+import type { EmptyObject } from '../src/dev.js';
 import { HyperAPIDriver } from '../src/driver.js';
 import { HyperAPIError } from '../src/error.js';
 import type { HyperAPIRequest, HyperAPIRequestArgs } from '../src/request.js';
 import type { HyperAPIMethod } from '../src/utils/methods.js';
-import type { EmptyObject } from '../src/utils/record.js';
 
 export interface TestRequest<A extends HyperAPIRequestArgs = EmptyObject>
 	extends HyperAPIRequest<A> {
@@ -24,7 +24,7 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 			},
 		]
 	> {
-		const response = await this.emitRequest({
+		const response = await super.fetch({
 			method,
 			path,
 			args,

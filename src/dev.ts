@@ -1,3 +1,4 @@
+export type { EmptyObject, UnknownRecord } from 'type-fest';
 export { HyperAPIDriver } from './driver.js';
 export type { HyperAPIErrorData } from './error.js';
 export type {
@@ -11,5 +12,4 @@ export type {
 export type { HyperAPIResponse } from './response.js';
 export { getRoutes } from './router/file-tree.js';
 export { type HyperAPIMethod, isHyperApiMethod } from './utils/methods.js';
-export type { BaseRecord, EmptyObject } from './utils/record.js';
 export { isRecord } from './utils/record.js';

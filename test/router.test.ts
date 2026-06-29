@@ -13,7 +13,7 @@ describe('route supports multiple methods', () => {
 		const [success, response] = await driver.trigger('GET', 'router/x');
 		expect(success).toBe(true);
 		expect(response).toStrictEqual({
-			path: 'router/x.get.ts',
+			path: 'router/x+get.ts',
 			method: 'GET',
 			args: {},
 		});
@@ -45,9 +45,10 @@ test('only method in the filename', async () => {
 	const [success, response] = await driver.trigger('GET', 'router');
 	expect(success).toBe(true);
 	expect(response).toStrictEqual({
-		path: 'router/index.get.ts',
+		path: 'router/index+get.ts',
 		method: 'GET',
 		args: {},
+		foo_type: 'number',
 	});
 });
 

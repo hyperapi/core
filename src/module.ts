@@ -1,40 +1,40 @@
 // oxlint-disable typescript/no-invalid-void-type
 
-import type { Promisable } from 'type-fest';
+import type { EmptyObject, Merge, Promisable, UnknownRecord } from 'type-fest';
 import type { HyperAPIRequest } from './request.js';
-import type { BaseRecord } from './utils/record.js';
-import type { Extend, Join } from './utils/types.js';
+import type { HyperAPIResponse } from './response.js';
+// import type { ExtendRequest } from './utils/types.js';
 
 export type HyperAPIModuleResponse =
 	| Response
-	| BaseRecord
+	| UnknownRecord
 	| unknown[]
 	| undefined;
 
 export class HyperAPIModule<
-	Req extends HyperAPIRequest<BaseRecord>,
-	ReqExtra extends BaseRecord = never,
+	Req extends HyperAPIRequest<UnknownRecord>,
+	ReqExtra extends UnknownRecord = EmptyObject,
 > {
 	private chain: ((
-		request: Join<Req, ReqExtra>,
-	) => Promisable<BaseRecord | void>)[] = [];
+		request: Merge<Req, ReqExtra>,
+	) => Promisable<UnknownRecord | void>)[] = [];
 
-	use<ReqAdd extends BaseRecord | void>(
-		fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>,
+	use<ReqAdd extends UnknownRecord | void>(
+		fn: (request: Merge<Req, ReqExtra>) => Promisable<ReqAdd>,
 	) {
 		this.chain.push(fn);
 
-		return this as unknown as HyperAPIModule<Req, Extend<ReqExtra, ReqAdd>>;
+		return this as HyperAPIModule<Req, ReqExtra & ReqAdd>;
 	}
 
 	set<const K extends string, V>(
 		key: K,
-		fn: (request: Join<Req, ReqExtra>) => Promisable<V>,
-	): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
+		fn: (request: Merge<Req, ReqExtra>) => Promisable<V>,
+	): HyperAPIModule<Req, ReqExtra & Record<K, V>>;
 	set<const K extends string, V>(
 		key: K,
 		value: V,
-	): HyperAPIModule<Req, Extend<ReqExtra, Record<K, V>>>;
+	): HyperAPIModule<Req, ReqExtra & Record<K, V>>;
 	set<const K extends string, V>(key: K, arg1: unknown) {
 		this.chain.push(async (request) => {
 			const value = typeof arg1 === 'function' ? await arg1(request) : arg1;
@@ -43,14 +43,11 @@ export class HyperAPIModule<
 			}
 		});
 
-		return this as unknown as HyperAPIModule<
-			Req,
-			Extend<ReqExtra, Record<K, V>>
-		>;
+		return this as HyperAPIModule<Req, ReqExtra & Record<K, V>>;
 	}
 
 	action<Resp extends HyperAPIModuleResponse | void>(
-		fn: (request: Join<Req, ReqExtra>) => Promisable<Resp>,
+		fn: (request: Merge<Req, ReqExtra>) => Promisable<Resp>,
 	) {
 		this.chain.push(async (request) => {
 			const response = await fn(request);
@@ -61,19 +58,23 @@ export class HyperAPIModule<
 
 		return this as unknown as HyperAPIModule<
 			Req,
-			Extend<ReqExtra, { response: Resp }>
+			ReqExtra & { response: Resp }
 		>;
 	}
 
+	/** @internal */
 	async _run(
 		request: Req,
-	): Promise<Join<Req, Extend<ReqExtra, { response?: unknown }>>> {
+	): Promise<Merge<Req, Merge<ReqExtra, { response?: HyperAPIResponse }>>> {
 		const request_result = request;
 		for (const fn of this.chain) {
 			// oxlint-disable-next-line no-await-in-loop
-			const request_add = await fn(request_result as Join<Req, ReqExtra>);
+			const request_add = await fn(request_result as Merge<Req, ReqExtra>);
 			if (request_add) {
+				console.log('request_result before', request_result);
+				console.log('request_add', request_add);
 				Object.assign(request_result, request_add);
+				console.log('request_result after', request_result);
 			}
 		}
 

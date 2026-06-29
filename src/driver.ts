@@ -12,7 +12,7 @@ export class HyperAPIDriver<
 }> {
 	// declare R: R;
 
-	protected emitRequest(request: R): Promise<HyperAPIResponse> {
+	fetch(request: R): Promise<HyperAPIResponse> {
 		return new Promise<HyperAPIResponse>((resolve) => {
 			this.emit('request', {
 				request,
@@ -22,6 +22,6 @@ export class HyperAPIDriver<
 	}
 
 	// override destroy(): void {
-	// 	this.destroy();
+	// 	super.destroy();
 	// }
 }

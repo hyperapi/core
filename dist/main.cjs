@@ -1,9 +1,8 @@
-const require_dev = require('./dev-B3YkhYlV.cjs');
+Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+const require_file_tree = require("./file-tree-BrKPwDyB.cjs");
 let node_path = require("node:path");
-node_path = require_dev.__toESM(node_path);
+node_path = require_file_tree.__toESM(node_path, 1);
 let itty_router = require("itty-router");
-itty_router = require_dev.__toESM(itty_router);
-
 //#region src/error.ts
 var HyperAPIError = class extends Error {
 	/** The error code. */
@@ -18,8 +17,8 @@ var HyperAPIError = class extends Error {
 	httpHeaders;
 	constructor(data, httpHeaders) {
 		super();
-		if (require_dev.isRecord(data)) this.data = data;
-		if (require_dev.isRecord(httpHeaders)) this.httpHeaders = {
+		if (require_file_tree.isRecord(data)) this.data = data;
+		if (require_file_tree.isRecord(httpHeaders)) this.httpHeaders = {
 			...this.httpHeaders,
 			...httpHeaders
 		};
@@ -38,7 +37,6 @@ var HyperAPIError = class extends Error {
 		return response;
 	}
 };
-
 //#endregion
 //#region src/api-errors.ts
 var HyperAPIAuthorizationError = class extends HyperAPIError {
@@ -110,7 +108,6 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 		super(void 0, filtered_methods.length > 0 ? { Allow: filtered_methods.join(", ") } : void 0);
 	}
 };
-
 //#endregion
 //#region src/module.ts
 var HyperAPIModule = class {
@@ -133,16 +130,21 @@ var HyperAPIModule = class {
 		});
 		return this;
 	}
+	/** @internal */
 	async _run(request) {
 		const request_result = request;
 		for (const fn of this.chain) {
 			const request_add = await fn(request_result);
-			if (request_add) Object.assign(request_result, request_add);
+			if (request_add) {
+				console.log("request_result before", request_result);
+				console.log("request_add", request_add);
+				Object.assign(request_result, request_add);
+				console.log("request_result after", request_result);
+			}
 		}
 		return request_result;
 	}
 };
-
 //#endregion
 //#region src/response.ts
 /**
@@ -151,16 +153,15 @@ var HyperAPIModule = class {
 * @returns True if the value is a HyperAPIResponse, false otherwise.
 */
 function isHyperAPIResponse(response) {
-	return response instanceof HyperAPIError || response instanceof Response || require_dev.isRecord(response) || Array.isArray(response) || response === void 0;
+	return response instanceof HyperAPIError || response instanceof Response || require_file_tree.isRecord(response) || Array.isArray(response) || response === void 0;
 }
-
 //#endregion
 //#region src/router.ts
 var HyperAPIRouter = class {
 	#router = (0, itty_router.IttyRouter)();
 	#routes_map = /* @__PURE__ */ new Map();
 	constructor(path_root) {
-		for (const route of require_dev.getRoutes(path_root)) {
+		for (const route of require_file_tree.getRoutes(path_root)) {
 			const router_response = Object.freeze({
 				async getHandler() {
 					return (await import(route.file_path)).default;
@@ -202,7 +203,6 @@ var HyperAPIRouter = class {
 		throw new HyperAPIUnknownMethodError();
 	}
 };
-
 //#endregion
 //#region src/main.ts
 const ENTRYPOINT_PATH = node_path.default.dirname(process.argv[1]);
@@ -252,7 +252,7 @@ var HyperAPI = class {
 				if (request_added !== void 0) Object.assign(request_external, request_added);
 			}
 			const router_response = await this.#router.fetch(request.method, request.path);
-			if (require_dev.hasCommonKeys(router_response.args, request.args)) throw new HyperAPIInvalidParametersError();
+			if (require_file_tree.hasCommonKeys(router_response.args, request.args)) throw new HyperAPIInvalidParametersError();
 			request.args = {
 				...request.args,
 				...router_response.args
@@ -281,7 +281,6 @@ var HyperAPI = class {
 		this.off();
 	}
 };
-
 //#endregion
 exports.HyperAPI = HyperAPI;
 exports.HyperAPIAuthorizationError = HyperAPIAuthorizationError;

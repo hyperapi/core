@@ -108,9 +108,10 @@ describe('hooks', () => {
 					expectTypeOf(request.foo).toBeString();
 					expectTypeOf(request.response).toEqualTypeOf<HyperAPIResponse>();
 					expect(request.response).toStrictEqual({
-						path: 'router/index.get.ts',
+						path: 'router/index+get.ts',
 						method: 'GET',
 						args: {},
+						foo_type: 'string',
 					});
 
 					valueFirst = mockFnFirst();
@@ -124,9 +125,10 @@ describe('hooks', () => {
 					expectTypeOf(request.foo).toBeString();
 					expectTypeOf(request.response).toEqualTypeOf<HyperAPIResponse>();
 					expect(request.response).toStrictEqual({
-						path: 'router/index.get.ts',
+						path: 'router/index+get.ts',
 						method: 'GET',
 						args: {},
+						foo_type: 'string',
 					});
 
 					valueSecond = mockFnSecond();

@@ -15,6 +15,7 @@
 		"types": ["*"],
 		"declaration": true,
 		"isolatedDeclarations": false,
-		"tsBuildInfoFile": "/dev/null"
+		"tsBuildInfoFile": "/dev/null",
+		"stripInternal": true
 	}
 }

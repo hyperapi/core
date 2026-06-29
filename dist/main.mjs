@@ -1,7 +1,6 @@
-import { i as getRoutes, n as isRecord, t as hasCommonKeys } from "./dev-0Q4IU4qQ.js";
+import { a as isRecord, i as hasCommonKeys, t as getRoutes } from "./file-tree-Ctu-M8Ca.mjs";
 import nodePath from "node:path";
 import { IttyRouter } from "itty-router";
-
 //#region src/error.ts
 var HyperAPIError = class extends Error {
 	/** The error code. */
@@ -36,7 +35,6 @@ var HyperAPIError = class extends Error {
 		return response;
 	}
 };
-
 //#endregion
 //#region src/api-errors.ts
 var HyperAPIAuthorizationError = class extends HyperAPIError {
@@ -108,7 +106,6 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 		super(void 0, filtered_methods.length > 0 ? { Allow: filtered_methods.join(", ") } : void 0);
 	}
 };
-
 //#endregion
 //#region src/module.ts
 var HyperAPIModule = class {
@@ -131,16 +128,21 @@ var HyperAPIModule = class {
 		});
 		return this;
 	}
+	/** @internal */
 	async _run(request) {
 		const request_result = request;
 		for (const fn of this.chain) {
 			const request_add = await fn(request_result);
-			if (request_add) Object.assign(request_result, request_add);
+			if (request_add) {
+				console.log("request_result before", request_result);
+				console.log("request_add", request_add);
+				Object.assign(request_result, request_add);
+				console.log("request_result after", request_result);
+			}
 		}
 		return request_result;
 	}
 };
-
 //#endregion
 //#region src/response.ts
 /**
@@ -151,7 +153,6 @@ var HyperAPIModule = class {
 function isHyperAPIResponse(response) {
 	return response instanceof HyperAPIError || response instanceof Response || isRecord(response) || Array.isArray(response) || response === void 0;
 }
-
 //#endregion
 //#region src/router.ts
 var HyperAPIRouter = class {
@@ -200,7 +201,6 @@ var HyperAPIRouter = class {
 		throw new HyperAPIUnknownMethodError();
 	}
 };
-
 //#endregion
 //#region src/main.ts
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]);
@@ -279,6 +279,5 @@ var HyperAPI = class {
 		this.off();
 	}
 };
-
 //#endregion
 export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError };

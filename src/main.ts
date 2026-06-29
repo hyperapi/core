@@ -1,7 +1,7 @@
 // oxlint-disable typescript/no-invalid-void-type
 
 import nodePath from 'node:path';
-import type { Promisable } from 'type-fest';
+import type { EmptyObject, Promisable, UnknownRecord } from 'type-fest';
 import {
 	HyperAPIInternalError,
 	HyperAPIInvalidParametersError,
@@ -12,18 +12,13 @@ import { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
 import { type HyperAPIResponse, isHyperAPIResponse } from './response.js';
 import { HyperAPIRouter } from './router.js';
-import {
-	type BaseRecord,
-	type EmptyObject,
-	hasCommonKeys,
-} from './utils/record.js';
-import type { Extend, Join } from './utils/types.js';
+import { hasCommonKeys } from './utils/record.js';
 
 const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]!);
 
 export class HyperAPI<
 	Req extends HyperAPIRequest,
-	ReqExtra extends BaseRecord = EmptyObject,
+	ReqExtra extends UnknownRecord = EmptyObject,
 > {
 	#router;
 	private off: () => void;
@@ -68,22 +63,22 @@ export class HyperAPI<
 	}
 
 	private hooks_before_router: ((
-		request: Join<Req, ReqExtra>,
-	) => Promisable<BaseRecord | void>)[] = [];
+		request: Req & ReqExtra,
+	) => Promisable<UnknownRecord | void>)[] = [];
 
-	onBeforeRouter<ReqAdd extends BaseRecord | void>(
-		fn: (request: Join<Req, ReqExtra>) => Promisable<ReqAdd>,
+	onBeforeRouter<ReqAdd extends UnknownRecord | void>(
+		fn: (request: Req & ReqExtra) => Promisable<ReqAdd>,
 	) {
 		this.hooks_before_router.push(fn);
 
-		return this as unknown as HyperAPI<Req, Extend<ReqExtra, ReqAdd>>;
+		return this as HyperAPI<Req, ReqExtra & ReqAdd>;
 	}
 
 	private hooks_response: Parameters<typeof this.onResponse>[0][] = [];
 
 	onResponse(
 		fn: (
-			request: Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
+			request: Req & ReqExtra & { response: HyperAPIResponse }, // Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
 		) => Promisable<void>,
 	) {
 		this.hooks_response.push(fn);

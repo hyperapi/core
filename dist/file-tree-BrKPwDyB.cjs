@@ -1,10 +1,43 @@
-import { NeoEvent, NeoEventTarget } from "neoevents";
-import { readdirSync } from "node:fs";
-import nodePath from "node:path";
-
+//#region \0rolldown/runtime.js
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
+//#endregion
+let node_path = require("node:path");
+node_path = __toESM(node_path, 1);
+let node_fs = require("node:fs");
+let neoevents = require("neoevents");
+//#region src/utils/record.ts
+/** Check if a value is a record. */
+function isRecord(value) {
+	return typeof value === "object" && value !== null && !Array.isArray(value) && value.constructor === Object && Object.prototype.toString.call(value) === "[object Object]";
+}
+/** Checks if there are common keys in both object. */
+function hasCommonKeys(value1, value2) {
+	for (const key of Object.keys(value2)) if (Object.hasOwn(value1, key)) return true;
+	return false;
+}
+//#endregion
 //#region src/driver.ts
-var HyperAPIDriver = class extends NeoEventTarget {
-	emitRequest(request) {
+var HyperAPIDriver = class extends neoevents.NeoEventTarget {
+	fetch(request) {
 		return new Promise((resolve) => {
 			this.emit("request", {
 				request,
@@ -13,7 +46,16 @@ var HyperAPIDriver = class extends NeoEventTarget {
 		});
 	}
 };
-
+//#endregion
+//#region src/utils/methods.ts
+/**
+* Checks if the given value is a valid HyperAPI method.
+* @param method The HTTP method to check.
+* @returns -
+*/
+function isHyperApiMethod(method) {
+	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
+}
 //#endregion
 //#region src/router/filename.ts
 const RE_OPTIONAL_CATCH_ALL = /^\[\[\.\.\.(?<key>[a-z_][\da-z_]*)\]\]$/iu;
@@ -77,17 +119,10 @@ function parseFilename(name) {
 	} };
 	throw new Error(`Invalid filename "${name}".`);
 }
-
 //#endregion
 //#region src/router/file-tree.ts
 const RE_EXT = /\.(?<ext>[cm]?[jt]s)$/iu;
-const RE_METHOD = /\.(?<method>delete|get|options|patch|post|put)$/iu;
-var WalkSpecificityPosition = /* @__PURE__ */ function(WalkSpecificityPosition$1) {
-	WalkSpecificityPosition$1[WalkSpecificityPosition$1["FILE_METHOD"] = 0] = "FILE_METHOD";
-	WalkSpecificityPosition$1[WalkSpecificityPosition$1["FILE_ALL"] = 1] = "FILE_ALL";
-	WalkSpecificityPosition$1[WalkSpecificityPosition$1["DIRECTORY"] = 2] = "DIRECTORY";
-	return WalkSpecificityPosition$1;
-}(WalkSpecificityPosition || {});
+const RE_METHOD = /\+(?<method>delete|get|options|patch|post|put)$/iu;
 /**
 * Returns the routes for the given path.
 * @param path The path to read files from.
@@ -101,13 +136,13 @@ function getRoutes(path) {
 			children: []
 		};
 		const result_routes = [];
-		const entries = readdirSync(walk_state.path, { withFileTypes: true });
+		const entries = (0, node_fs.readdirSync)(walk_state.path, { withFileTypes: true });
 		if (process.env.NODE_ENV === "test") for (let i = entries.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
 			[entries[i], entries[j]] = [entries[j], entries[i]];
 		}
 		for (const entry of entries) {
-			const entry_path = nodePath.join(entry.parentPath, entry.name);
+			const entry_path = node_path.default.join(entry.parentPath, entry.name);
 			if (entry.isFile()) {
 				let name = entry.name.replace(RE_EXT, "");
 				if (name.endsWith(".test")) continue;
@@ -119,7 +154,7 @@ function getRoutes(path) {
 					return "";
 				});
 				const { self, route } = parseFilename(name);
-				const specificity_position = WalkSpecificityPosition.FILE_METHOD;
+				const specificity_position = 0;
 				if (self) result_routes.push({
 					specificity: {
 						...walk_state.specificity,
@@ -138,7 +173,7 @@ function getRoutes(path) {
 					},
 					route_data: {
 						method,
-						route: (walk_state.route ?? "") + nodePath.sep + route.part,
+						route: (walk_state.route ?? "") + node_path.default.sep + route.part,
 						file_path: entry_path
 					}
 				});
@@ -148,10 +183,10 @@ function getRoutes(path) {
 				if (!route) throw new Error(`Invalid directory name "${entry.name}" at "${entry_path}".`);
 				result_directory.children.push(...walk({
 					path: entry_path,
-					route: (walk_state.route ?? "") + nodePath.sep + route.part,
+					route: (walk_state.route ?? "") + node_path.default.sep + route.part,
 					specificity: {
 						...route.specificity,
-						position: WalkSpecificityPosition.DIRECTORY
+						position: 2
 					}
 				}));
 			}
@@ -167,7 +202,7 @@ function getRoutes(path) {
 		specificity: {
 			type: 0,
 			static_length: 0,
-			position: WalkSpecificityPosition.DIRECTORY
+			position: 2
 		}
 	});
 	return route_datas;
@@ -184,38 +219,40 @@ function sortRoutes(result) {
 		return 0;
 	});
 }
-
 //#endregion
-//#region src/utils/methods.ts
-/**
-* Checks if the given value is a valid HyperAPI method.
-* @param method The HTTP method to check.
-* @returns -
-*/
-function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
-}
-
-//#endregion
-//#region src/utils/record.ts
-/**
-* Check if a value is a record.
-* @param value -
-* @returns -
-*/
-function isRecord(value) {
-	return typeof value === "object" && value !== null && !Array.isArray(value) && value.constructor === Object && Object.prototype.toString.call(value) === "[object Object]";
-}
-/**
-* Checks if there are common keys in both object.
-* @param value1 -
-* @param value2 -
-* @returns -
-*/
-function hasCommonKeys(value1, value2) {
-	for (const key of Object.keys(value2)) if (Object.hasOwn(value1, key)) return true;
-	return false;
-}
-
-//#endregion
-export { HyperAPIDriver as a, getRoutes as i, isRecord as n, isHyperApiMethod as r, hasCommonKeys as t };
+Object.defineProperty(exports, "HyperAPIDriver", {
+	enumerable: true,
+	get: function() {
+		return HyperAPIDriver;
+	}
+});
+Object.defineProperty(exports, "__toESM", {
+	enumerable: true,
+	get: function() {
+		return __toESM;
+	}
+});
+Object.defineProperty(exports, "getRoutes", {
+	enumerable: true,
+	get: function() {
+		return getRoutes;
+	}
+});
+Object.defineProperty(exports, "hasCommonKeys", {
+	enumerable: true,
+	get: function() {
+		return hasCommonKeys;
+	}
+});
+Object.defineProperty(exports, "isHyperApiMethod", {
+	enumerable: true,
+	get: function() {
+		return isHyperApiMethod;
+	}
+});
+Object.defineProperty(exports, "isRecord", {
+	enumerable: true,
+	get: function() {
+		return isRecord;
+	}
+});

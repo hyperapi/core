@@ -1,12 +1,7 @@
-export type BaseRecord = Record<PropertyKey, unknown>;
-export type EmptyObject = Record<symbol, never>;
+import type { UnknownRecord } from 'type-fest';
 
-/**
- * Check if a value is a record.
- * @param value -
- * @returns -
- */
-export function isRecord(value: unknown): value is BaseRecord {
+/** Check if a value is a record. */
+export function isRecord(value: unknown): value is UnknownRecord {
 	return (
 		typeof value === 'object'
 		&& value !== null
@@ -16,13 +11,11 @@ export function isRecord(value: unknown): value is BaseRecord {
 	);
 }
 
-/**
- * Checks if there are common keys in both object.
- * @param value1 -
- * @param value2 -
- * @returns -
- */
-export function hasCommonKeys(value1: BaseRecord, value2: BaseRecord): boolean {
+/** Checks if there are common keys in both object. */
+export function hasCommonKeys(
+	value1: UnknownRecord,
+	value2: UnknownRecord,
+): boolean {
 	for (const key of Object.keys(value2)) {
 		if (Object.hasOwn(value1, key)) {
 			return true;

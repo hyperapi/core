@@ -1,4 +1,5 @@
 import { type IRequest, IttyRouter, type IttyRouterType } from 'itty-router';
+import type { UnknownRecord } from 'type-fest';
 import {
 	HyperAPIMethodNotAllowedError,
 	HyperAPIUnknownMethodError,
@@ -7,7 +8,6 @@ import type { HyperAPIModule } from './module.js';
 import type { HyperAPIRequest } from './request.js';
 import { getRoutes } from './router/file-tree.js';
 import type { HyperAPIMethod } from './utils/methods.js';
-import type { BaseRecord } from './utils/record.js';
 
 export type HyperAPIRouteData = {
 	method: HyperAPIMethod;
@@ -16,12 +16,12 @@ export type HyperAPIRouteData = {
 };
 type HyperAPIIttyRouterResponse = {
 	route: string;
-	args: BaseRecord;
+	args: UnknownRecord;
 };
 type HyperAPIRouterResponse = {
-	getHandler: () => Promise<HyperAPIModule<HyperAPIRequest<BaseRecord>>>;
+	getHandler: () => Promise<HyperAPIModule<HyperAPIRequest<UnknownRecord>>>;
 	route_data: HyperAPIRouteData;
-	args: BaseRecord;
+	args: UnknownRecord;
 };
 
 export class HyperAPIRouter {
