@@ -133,12 +133,7 @@ var HyperAPIModule = class {
 		const request_result = request;
 		for (const fn of this.chain) {
 			const request_add = await fn(request_result);
-			if (request_add) {
-				console.log("request_result before", request_result);
-				console.log("request_add", request_add);
-				Object.assign(request_result, request_add);
-				console.log("request_result after", request_result);
-			}
+			if (request_add) Object.assign(request_result, request_add);
 		}
 		return request_result;
 	}

@@ -71,10 +71,7 @@ export class HyperAPIModule<
 			// oxlint-disable-next-line no-await-in-loop
 			const request_add = await fn(request_result as Merge<Req, ReqExtra>);
 			if (request_add) {
-				console.log('request_result before', request_result);
-				console.log('request_add', request_add);
 				Object.assign(request_result, request_add);
-				console.log('request_result after', request_result);
 			}
 		}
 
