@@ -1,7 +1,10 @@
 import { isRecord } from './utils/record.js';
 
+export type HeadersInit = Exclude<
+	ConstructorParameters<typeof Headers>[0],
+	undefined
+>;
 export type HyperAPIErrorData = Record<string, unknown> | undefined;
-
 interface HyperAPIErrorResponse {
 	code: number;
 	description?: string;
@@ -20,20 +23,24 @@ export class HyperAPIError<
 	/** HTTP status code. */
 	readonly httpStatus?: number;
 	/** HTTP headers to return. */
-	readonly httpHeaders?: Record<string, string>;
+	readonly httpHeaders?: Headers;
 
-	constructor(data?: D, httpHeaders?: Record<string, string>) {
+	constructor(data?: D, httpHeaders?: HeadersInit) {
 		super();
 
 		if (isRecord(data)) {
 			this.data = data;
 		}
 
-		if (isRecord(httpHeaders)) {
-			this.httpHeaders = {
-				...this.httpHeaders,
-				...httpHeaders,
-			};
+		if (httpHeaders) {
+			const headers_new = new Headers(httpHeaders);
+			if (this.httpHeaders === undefined) {
+				this.httpHeaders = headers_new;
+			} else {
+				for (const [header, value] of headers_new.entries()) {
+					this.httpHeaders?.append(header, value);
+				}
+			}
 		}
 	}
 

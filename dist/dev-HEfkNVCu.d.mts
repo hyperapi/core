@@ -19,6 +19,7 @@ interface HyperAPIRequest<A extends HyperAPIRequestArgs = EmptyObject> {
 }
 //#endregion
 //#region src/error.d.ts
+type HeadersInit = Exclude<ConstructorParameters<typeof Headers>[0], undefined>;
 type HyperAPIErrorData = Record<string, unknown> | undefined;
 interface HyperAPIErrorResponse {
   code: number;
@@ -35,8 +36,8 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
   /** HTTP status code. */
   readonly httpStatus?: number;
   /** HTTP headers to return. */
-  readonly httpHeaders?: Record<string, string>;
-  constructor(data?: D, httpHeaders?: Record<string, string>);
+  readonly httpHeaders?: Headers;
+  constructor(data?: D, httpHeaders?: HeadersInit);
   override get message(): string;
   /**
   * Creates response object.

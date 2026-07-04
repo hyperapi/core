@@ -20,7 +20,7 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 			unknown,
 			{
 				status: number | undefined;
-				headers: Record<string, string> | undefined;
+				headers: Headers | undefined;
 			},
 		]
 	> {
@@ -42,6 +42,6 @@ export class HyperAPITestDriver extends HyperAPIDriver<TestRequest> {
 			];
 		}
 
-		return [true, response, { status: 200, headers: {} }];
+		return [true, response, { status: 200, headers: undefined }];
 	}
 }

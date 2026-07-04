@@ -18,10 +18,11 @@ var HyperAPIError = class extends Error {
 	constructor(data, httpHeaders) {
 		super();
 		if (require_file_tree.isRecord(data)) this.data = data;
-		if (require_file_tree.isRecord(httpHeaders)) this.httpHeaders = {
-			...this.httpHeaders,
-			...httpHeaders
-		};
+		if (httpHeaders) {
+			const headers_new = new Headers(httpHeaders);
+			if (this.httpHeaders === void 0) this.httpHeaders = headers_new;
+			else for (const [header, value] of headers_new.entries()) this.httpHeaders?.append(header, value);
+		}
 	}
 	get message() {
 		return `${this.description} (code ${this.code}).`;
