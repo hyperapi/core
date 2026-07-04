@@ -21,9 +21,9 @@ export class HyperAPIError<
 	/** The error data. */
 	readonly data?: D;
 	/** HTTP status code. */
-	readonly httpStatus?: number;
+	readonly httpStatus: number = 500;
 	/** HTTP headers to return. */
-	readonly httpHeaders?: Headers;
+	readonly httpHeaders: Headers = new Headers();
 
 	constructor(data?: D, httpHeaders?: HeadersInit) {
 		super();
@@ -33,13 +33,10 @@ export class HyperAPIError<
 		}
 
 		if (httpHeaders) {
-			const headers_new = new Headers(httpHeaders);
-			if (this.httpHeaders === undefined) {
-				this.httpHeaders = headers_new;
-			} else {
-				for (const [header, value] of headers_new.entries()) {
-					this.httpHeaders?.append(header, value);
-				}
+			const headers_new =
+				httpHeaders instanceof Headers ? httpHeaders : new Headers(httpHeaders);
+			for (const [header, value] of headers_new.entries()) {
+				this.httpHeaders.append(header, value);
 			}
 		}
 	}

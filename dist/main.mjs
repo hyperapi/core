@@ -10,16 +10,15 @@ var HyperAPIError = class extends Error {
 	/** The error data. */
 	data;
 	/** HTTP status code. */
-	httpStatus;
+	httpStatus = 500;
 	/** HTTP headers to return. */
-	httpHeaders;
+	httpHeaders = new Headers();
 	constructor(data, httpHeaders) {
 		super();
 		if (isRecord(data)) this.data = data;
 		if (httpHeaders) {
-			const headers_new = new Headers(httpHeaders);
-			if (this.httpHeaders === void 0) this.httpHeaders = headers_new;
-			else for (const [header, value] of headers_new.entries()) this.httpHeaders?.append(header, value);
+			const headers_new = httpHeaders instanceof Headers ? httpHeaders : new Headers(httpHeaders);
+			for (const [header, value] of headers_new.entries()) this.httpHeaders.append(header, value);
 		}
 	}
 	get message() {

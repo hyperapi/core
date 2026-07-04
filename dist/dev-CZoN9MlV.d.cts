@@ -34,9 +34,9 @@ declare class HyperAPIError<D extends HyperAPIErrorData = undefined> extends Err
   /** The error data. */
   readonly data?: D;
   /** HTTP status code. */
-  readonly httpStatus?: number;
+  readonly httpStatus: number;
   /** HTTP headers to return. */
-  readonly httpHeaders?: Headers;
+  readonly httpHeaders: Headers;
   constructor(data?: D, httpHeaders?: HeadersInit);
   override get message(): string;
   /**
