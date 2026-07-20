@@ -5,6 +5,7 @@ export type HyperAPIMethod =
 	| 'PATCH'
 	| 'POST'
 	| 'PUT'
+	| 'QUERY'
 	| 'UNDEF';
 
 /**
@@ -20,6 +21,7 @@ export function isHyperApiMethod(method: unknown): method is HyperAPIMethod {
 		|| method === 'PATCH'
 		|| method === 'POST'
 		|| method === 'PUT'
+		|| method === 'QUERY'
 		|| method === 'UNDEF'
 	);
 }

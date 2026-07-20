@@ -1,6 +1,29 @@
-import nodePath from "node:path";
-import { readdirSync } from "node:fs";
-import { NeoEventTarget } from "neoevents";
+//#region \0rolldown/runtime.js
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
+//#endregion
+let node_path = require("node:path");
+node_path = __toESM(node_path, 1);
+let node_fs = require("node:fs");
+let neoevents = require("neoevents");
 //#region src/utils/record.ts
 /** Check if a value is a record. */
 function isRecord(value) {
@@ -13,7 +36,7 @@ function hasCommonKeys(value1, value2) {
 }
 //#endregion
 //#region src/driver.ts
-var HyperAPIDriver = class extends NeoEventTarget {
+var HyperAPIDriver = class extends neoevents.NeoEventTarget {
 	fetch(request) {
 		return new Promise((resolve) => {
 			this.emit("request", {
@@ -31,7 +54,7 @@ var HyperAPIDriver = class extends NeoEventTarget {
 * @returns -
 */
 function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
+	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "QUERY" || method === "UNDEF";
 }
 //#endregion
 //#region src/router/filename.ts
@@ -99,7 +122,7 @@ function parseFilename(name) {
 //#endregion
 //#region src/router/file-tree.ts
 const RE_EXT = /\.(?<ext>[cm]?[jt]s)$/iu;
-const RE_METHOD = /\+(?<method>delete|get|options|patch|post|put)$/iu;
+const RE_METHOD = /\+(?<method>delete|get|options|patch|post|put|query)$/iu;
 /**
 * Returns the routes for the given path.
 * @param path The path to read files from.
@@ -113,13 +136,13 @@ function getRoutes(path) {
 			children: []
 		};
 		const result_routes = [];
-		const entries = readdirSync(walk_state.path, { withFileTypes: true });
+		const entries = (0, node_fs.readdirSync)(walk_state.path, { withFileTypes: true });
 		if (process.env.NODE_ENV === "test") for (let i = entries.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
 			[entries[i], entries[j]] = [entries[j], entries[i]];
 		}
 		for (const entry of entries) {
-			const entry_path = nodePath.join(entry.parentPath, entry.name);
+			const entry_path = node_path.default.join(entry.parentPath, entry.name);
 			if (entry.isFile()) {
 				let name = entry.name.replace(RE_EXT, "");
 				if (name.endsWith(".test")) continue;
@@ -150,7 +173,7 @@ function getRoutes(path) {
 					},
 					route_data: {
 						method,
-						route: (walk_state.route ?? "") + nodePath.sep + route.part,
+						route: (walk_state.route ?? "") + node_path.default.sep + route.part,
 						file_path: entry_path
 					}
 				});
@@ -160,7 +183,7 @@ function getRoutes(path) {
 				if (!route) throw new Error(`Invalid directory name "${entry.name}" at "${entry_path}".`);
 				result_directory.children.push(...walk({
 					path: entry_path,
-					route: (walk_state.route ?? "") + nodePath.sep + route.part,
+					route: (walk_state.route ?? "") + node_path.default.sep + route.part,
 					specificity: {
 						...route.specificity,
 						position: 2
@@ -197,4 +220,39 @@ function sortRoutes(result) {
 	});
 }
 //#endregion
-export { isRecord as a, hasCommonKeys as i, isHyperApiMethod as n, HyperAPIDriver as r, getRoutes as t };
+Object.defineProperty(exports, "HyperAPIDriver", {
+	enumerable: true,
+	get: function() {
+		return HyperAPIDriver;
+	}
+});
+Object.defineProperty(exports, "__toESM", {
+	enumerable: true,
+	get: function() {
+		return __toESM;
+	}
+});
+Object.defineProperty(exports, "getRoutes", {
+	enumerable: true,
+	get: function() {
+		return getRoutes;
+	}
+});
+Object.defineProperty(exports, "hasCommonKeys", {
+	enumerable: true,
+	get: function() {
+		return hasCommonKeys;
+	}
+});
+Object.defineProperty(exports, "isHyperApiMethod", {
+	enumerable: true,
+	get: function() {
+		return isHyperApiMethod;
+	}
+});
+Object.defineProperty(exports, "isRecord", {
+	enumerable: true,
+	get: function() {
+		return isRecord;
+	}
+});

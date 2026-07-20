@@ -41,6 +41,40 @@ describe('route supports multiple methods', () => {
 	});
 });
 
+describe('QUERY method', () => {
+	test('routes to +query file', async () => {
+		const [success, response] = await driver.trigger('QUERY', 'router/q');
+		expect(success).toBe(true);
+		expect(response).toStrictEqual({
+			path: 'router/q+query.ts',
+			method: 'QUERY',
+			args: {},
+		});
+	});
+
+	test('not allowed on route without +query file', async () => {
+		const [success, response, http] = await driver.trigger('QUERY', 'router/x');
+		expect(success).toBe(false);
+		expect(response).toStrictEqual({
+			code: 14,
+			description: 'HTTP method not allowed',
+		});
+		expect(http.status).toBe(405);
+		expect(http.headers?.get('Allow')).toBe('GET');
+	});
+
+	test('GET not allowed on QUERY-only route', async () => {
+		const [success, response, http] = await driver.trigger('GET', 'router/q');
+		expect(success).toBe(false);
+		expect(response).toStrictEqual({
+			code: 14,
+			description: 'HTTP method not allowed',
+		});
+		expect(http.status).toBe(405);
+		expect(http.headers?.get('Allow')).toBe('QUERY');
+	});
+});
+
 test('only method in the filename', async () => {
 	const [success, response] = await driver.trigger('GET', 'router');
 	expect(success).toBe(true);

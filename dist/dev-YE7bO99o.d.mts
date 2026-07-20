@@ -2,7 +2,7 @@ import { NeoEvent, NeoEventTarget } from "neoevents";
 import { EmptyObject, EmptyObject as EmptyObject$1, Merge, Promisable, UnknownRecord, UnknownRecord as UnknownRecord$1 } from "type-fest";
 
 //#region src/utils/methods.d.ts
-type HyperAPIMethod = "DELETE" | "GET" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "UNDEF";
+type HyperAPIMethod = "DELETE" | "GET" | "OPTIONS" | "PATCH" | "POST" | "PUT" | "QUERY" | "UNDEF";
 /**
 * Checks if the given value is a valid HyperAPI method.
 * @param method The HTTP method to check.
