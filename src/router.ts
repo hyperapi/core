@@ -95,7 +95,7 @@ export class HyperAPIRouter {
 
 			const router_response = route_map.get(method);
 			if (!router_response) {
-				throw new HyperAPIMethodNotAllowedError([...route_map.keys()]);
+				throw new HyperAPIMethodNotAllowedError(route_map.keys().toArray());
 			}
 
 			return {

@@ -14,6 +14,24 @@ function hasCommonKeys(value1, value2) {
 //#endregion
 //#region src/driver.ts
 var HyperAPIDriver = class extends NeoEventTarget {
+	/**
+	* Runtime counterpart of the `Resp` type argument. Drivers whose transport
+	* carries more than plain JSON override this to accept it:
+	*
+	* ```ts
+	* override isValidResponse(response: unknown): response is MyResponse {
+	* 	return response instanceof Response || super.isValidResponse(response);
+	* }
+	* ```
+	*
+	* Keep the override and `Resp` in sync: TypeScript cannot check that the
+	* predicate matches the type it claims to narrow to.
+	* @param response - The value a module returned.
+	* @returns -
+	*/
+	isValidResponse(response) {
+		return response === void 0 || isRecord(response) || Array.isArray(response);
+	}
 	fetch(request) {
 		return new Promise((resolve) => {
 			this.emit("request", {
@@ -25,13 +43,22 @@ var HyperAPIDriver = class extends NeoEventTarget {
 };
 //#endregion
 //#region src/utils/methods.ts
+const METHODS = /* @__PURE__ */ new Set([
+	"DELETE",
+	"GET",
+	"OPTIONS",
+	"PATCH",
+	"POST",
+	"PUT",
+	"UNDEF"
+]);
 /**
 * Checks if the given value is a valid HyperAPI method.
 * @param method The HTTP method to check.
 * @returns -
 */
 function isHyperApiMethod(method) {
-	return method === "DELETE" || method === "GET" || method === "OPTIONS" || method === "PATCH" || method === "POST" || method === "PUT" || method === "UNDEF";
+	return METHODS.has(method);
 }
 //#endregion
 //#region src/router/filename.ts

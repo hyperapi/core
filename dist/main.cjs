@@ -1,5 +1,5 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const require_file_tree = require("./file-tree-BrKPwDyB.cjs");
+const require_file_tree = require("./file-tree-CfV5Ssrh.cjs");
 let node_path = require("node:path");
 node_path = require_file_tree.__toESM(node_path, 1);
 let itty_router = require("itty-router");
@@ -123,6 +123,7 @@ var HyperAPIModule = class {
 		});
 		return this;
 	}
+	/** Constrained to what the driver this module came from can carry back. */
 	action(fn) {
 		this.chain.push(async (request) => {
 			const response = await fn(request);
@@ -140,16 +141,6 @@ var HyperAPIModule = class {
 		return request_result;
 	}
 };
-//#endregion
-//#region src/response.ts
-/**
-* Checks if the given value is a HyperAPIResponse.
-* @param response - The value to check.
-* @returns True if the value is a HyperAPIResponse, false otherwise.
-*/
-function isHyperAPIResponse(response) {
-	return response instanceof HyperAPIError || response instanceof Response || require_file_tree.isRecord(response) || Array.isArray(response) || response === void 0;
-}
 //#endregion
 //#region src/router.ts
 var HyperAPIRouter = class {
@@ -189,7 +180,7 @@ var HyperAPIRouter = class {
 			const route_map = this.#routes_map.get(result.route);
 			if (!route_map) throw new Error(`Internal HyperAPI error: route not found for ${result.route}.`);
 			const router_response = route_map.get(method);
-			if (!router_response) throw new HyperAPIMethodNotAllowedError([...route_map.keys()]);
+			if (!router_response) throw new HyperAPIMethodNotAllowedError(route_map.keys().toArray());
 			return {
 				...router_response,
 				args: result.args
@@ -202,9 +193,11 @@ var HyperAPIRouter = class {
 //#region src/main.ts
 const ENTRYPOINT_PATH = node_path.default.dirname(process.argv[1]);
 var HyperAPI = class {
+	#driver;
 	#router;
 	off;
 	constructor(driver, root = node_path.default.join(ENTRYPOINT_PATH, "hyper-api")) {
+		this.#driver = driver;
 		this.#router = new HyperAPIRouter(root);
 		this.off = driver.on("request", async (event) => {
 			const [request_external, response] = await this.processRequest(event.detail.request);
@@ -261,7 +254,8 @@ var HyperAPI = class {
 				...request,
 				...request_external
 			});
-			if (isHyperAPIResponse(response) !== true) throw new TypeError(`Invalid response type from module ${router_response.route_data.file_path}. Expected Response, HyperAPIError, array, object or undefined.`);
+			if (response instanceof HyperAPIError) return [request_external, response];
+			if (this.#driver.isValidResponse(response) !== true) throw new TypeError(`Invalid response type from module ${router_response.route_data.file_path}: ${this.#driver.constructor.name} cannot carry it.`);
 			return [request_external, response];
 		} catch (error) {
 			if (error instanceof HyperAPIError) return [request_external, error];

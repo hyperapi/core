@@ -5,15 +5,18 @@ import type { HyperAPIRequest } from './request.js';
 import type { HyperAPIResponse } from './response.js';
 // import type { ExtendRequest } from './utils/types.js';
 
-export type HyperAPIModuleResponse =
-	| Response
-	| UnknownRecord
-	| unknown[]
-	| undefined;
+/**
+ * What every transport can carry back.
+ *
+ * This is the floor: drivers whose transport can carry more pass their own
+ * response type to `HyperAPIDriver` instead of widening this.
+ */
+export type HyperAPIModuleResponse = UnknownRecord | unknown[] | undefined;
 
 export class HyperAPIModule<
 	Req extends HyperAPIRequest<UnknownRecord>,
 	ReqExtra extends UnknownRecord = EmptyObject,
+	Resp = HyperAPIModuleResponse,
 > {
 	private chain: ((
 		request: Merge<Req, ReqExtra>,
@@ -24,17 +27,17 @@ export class HyperAPIModule<
 	) {
 		this.chain.push(fn);
 
-		return this as HyperAPIModule<Req, ReqExtra & ReqAdd>;
+		return this as HyperAPIModule<Req, ReqExtra & ReqAdd, Resp>;
 	}
 
 	set<const K extends string, V>(
 		key: K,
 		fn: (request: Merge<Req, ReqExtra>) => Promisable<V>,
-	): HyperAPIModule<Req, ReqExtra & Record<K, V>>;
+	): HyperAPIModule<Req, ReqExtra & Record<K, V>, Resp>;
 	set<const K extends string, V>(
 		key: K,
 		value: V,
-	): HyperAPIModule<Req, ReqExtra & Record<K, V>>;
+	): HyperAPIModule<Req, ReqExtra & Record<K, V>, Resp>;
 	set<const K extends string, V>(key: K, arg1: unknown) {
 		this.chain.push(async (request) => {
 			const value = typeof arg1 === 'function' ? await arg1(request) : arg1;
@@ -43,11 +46,12 @@ export class HyperAPIModule<
 			}
 		});
 
-		return this as HyperAPIModule<Req, ReqExtra & Record<K, V>>;
+		return this as HyperAPIModule<Req, ReqExtra & Record<K, V>, Resp>;
 	}
 
-	action<Resp extends HyperAPIModuleResponse | void>(
-		fn: (request: Merge<Req, ReqExtra>) => Promisable<Resp>,
+	/** Constrained to what the driver this module came from can carry back. */
+	action<R extends Resp | void>(
+		fn: (request: Merge<Req, ReqExtra>) => Promisable<R>,
 	) {
 		this.chain.push(async (request) => {
 			const response = await fn(request);
@@ -58,14 +62,18 @@ export class HyperAPIModule<
 
 		return this as unknown as HyperAPIModule<
 			Req,
-			ReqExtra & { response: Resp }
+			ReqExtra & { response: R },
+			Resp
 		>;
 	}
 
 	/** @internal */
+	// eslint-disable-next-line unicorn/prefer-private-class-fields
 	async _run(
 		request: Req,
-	): Promise<Merge<Req, Merge<ReqExtra, { response?: HyperAPIResponse }>>> {
+	): Promise<
+		Merge<Req, Merge<ReqExtra, { response?: HyperAPIResponse<Resp> }>>
+	> {
 		const request_result = request;
 		for (const fn of this.chain) {
 			// oxlint-disable-next-line no-await-in-loop

@@ -53,6 +53,7 @@ export function getRoutes(path: string): HyperAPIRouteData[] {
 		});
 		// shuffle response if we are running tests
 		// different filesystems may have different ordering in response
+		// oxlint-disable-next-line node/no-process-env
 		if (process.env.NODE_ENV === 'test') {
 			for (let i = entries.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i

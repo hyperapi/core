@@ -6,6 +6,9 @@
 		"access": "public"
 	},
 	"type": "module",
+	"files": [
+		"dist/"
+	],
 	"exports": {
 		".": {
 			"types": {
@@ -25,7 +28,7 @@
 		}
 	},
 	"engines": {
-		"node": ">=21"
+		"node": ">=22"
 	},
 	"dependencies": {
 		"itty-router": "5.0.24",
@@ -33,22 +36,21 @@
 		"type-fest": "5.7.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.4.10",
-		"@kirick/lint": "0.3.3",
+		"@biomejs/biome": "2.5.4",
+		"@kirick/lint": "0.4.2",
 		"@types/node": "24.12.3",
-		"eslint": "10.2.0",
-		"oxlint": "1.58.0",
+		"eslint": "10.7.0",
+		"oxlint": "1.74.0",
 		"publint": "0.3.21",
 		"tsdown": "0.22.3",
-		"typescript": "6.0.2",
+		"typescript": "6.0.3",
 		"unplugin-unused": "0.5.7",
-		"valibot": "1.4.2",
-		"vitest": "4.1.9"
+		"valibot": "1.5.0",
+		"vitest": "5.0.5"
 	},
 	"scripts": {
-		"build": "tsdown src/main.ts src/dev.ts --clean --tsconfig tsconfig.main.json --publint --unused --dts --format esm --format cjs",
-		"check": "bun run lint && bun run build && bun run test",
-		"lint": "biome format && oxlint && eslint . && tsc -b",
+		"build": "tsdown src/main.ts src/dev.ts --clean --dts --format esm --format cjs --unused --publint",
+		"check": "lint && bun run build && bun run test",
 		"pack": "bun check && dev pack create",
 		"test": "npm run test:vitest && bun test --coverage",
 		"test:vitest": "vitest run --no-file-parallelism"

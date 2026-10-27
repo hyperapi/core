@@ -6,6 +6,15 @@ export type HyperAPIMethod =
 	| 'POST'
 	| 'PUT'
 	| 'UNDEF';
+const METHODS = new Set<unknown>([
+	'DELETE',
+	'GET',
+	'OPTIONS',
+	'PATCH',
+	'POST',
+	'PUT',
+	'UNDEF',
+]);
 
 /**
  * Checks if the given value is a valid HyperAPI method.
@@ -13,13 +22,5 @@ export type HyperAPIMethod =
  * @returns -
  */
 export function isHyperApiMethod(method: unknown): method is HyperAPIMethod {
-	return (
-		method === 'DELETE'
-		|| method === 'GET'
-		|| method === 'OPTIONS'
-		|| method === 'PATCH'
-		|| method === 'POST'
-		|| method === 'PUT'
-		|| method === 'UNDEF'
-	);
+	return METHODS.has(method);
 }

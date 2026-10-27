@@ -298,6 +298,34 @@ HyperAPI provides several [built-in error classes](src/api-errors.ts) for common
 
 HyperAPI is designed to work with any transport layer or protocol through drivers. This separation of concerns allows you to implement your API once and use it across multiple protocols without changing your business logic.
 
+### What a driver can carry back
+
+Not every transport can carry every response. HTTP can hand back a raw `Response`; Tasq and IPC can only carry plain JSON. A driver declares what it supports with the second type argument of `HyperAPIDriver`, and the core propagates it all the way to `action()`:
+
+```ts
+import {
+  HyperAPIDriver,
+  type HyperAPIModuleResponse,
+  type HyperAPIRequest,
+} from '@hyperapi/core/dev';
+
+export interface MyRequest extends HyperAPIRequest {
+  headers: Headers;
+}
+
+type MyResponse = HyperAPIModuleResponse | Response;
+
+export class MyHttpDriver extends HyperAPIDriver<MyRequest, MyResponse> {
+  override isValidResponse(response: unknown): response is MyResponse {
+    return response instanceof Response || super.isValidResponse(response);
+  }
+}
+```
+
+`HyperAPIModuleResponse` — an object, an array or `undefined` — is the floor every transport supports, and the default when the argument is omitted. A module created from a `HyperAPI` built on `MyHttpDriver` may now return a `Response`; the same module code on a driver that kept the floor will not compile.
+
+The `isValidResponse` override is the runtime half of the same statement, used by the core to reject responses the transport cannot carry. Keep the two in sync: TypeScript cannot check that the predicate matches the type it claims to narrow to.
+
 ## TypeScript Support
 
 HyperAPI is built with TypeScript and provides excellent type inference.

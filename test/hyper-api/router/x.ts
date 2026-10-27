@@ -2,7 +2,7 @@ import { hyperApi } from '../../server.js';
 
 export default hyperApi.module().action((request) => {
 	return {
-		path: decodeURIComponent(import.meta.url.split('/hyper-api/')[1]!),
+		path: decodeURIComponent(import.meta.url.split('/hyper-api/', 2)[1]!),
 		method: request.method,
 		args: request.args,
 	};

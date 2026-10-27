@@ -94,9 +94,9 @@ describe('hooks', () => {
 	describe('onResponse', () => {
 		test('run at once', async () => {
 			const mockFnFirst = vi.fn(() => Date.now());
-			let valueFirst: number = Number.NEGATIVE_INFINITY;
+			let valueFirst = -Infinity;
 			const mockFnSecond = vi.fn(() => Date.now());
-			let valueSecond: number = Number.POSITIVE_INFINITY;
+			let valueSecond = Infinity;
 
 			const driver = new HyperAPITestDriver();
 			const hyperApi = new HyperAPI(

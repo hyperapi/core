@@ -64,7 +64,7 @@ export function parseFilename(name: string): ParsedFilename {
 	let has_optional = false;
 	let static_length = name.length;
 	const route_part = name.replaceAll(
-		// eslint-disable-next-line prefer-named-capture-group
+		// oxlint-disable-next-line prefer-named-capture-group
 		/(\[([a-z_][\da-z_]*)\]|\[\[([a-z_][\da-z_]*)\]\])([^\da-z_]|$)/giu,
 		(...args) => {
 			static_length -= args[1].length;

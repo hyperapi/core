@@ -1,4 +1,4 @@
-import { a as HyperAPIDriver, d as HyperAPIRequest, l as HyperAPIError, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIModule, u as HyperAPIErrorData } from "./dev-B88aXDMx.mjs";
+import { a as HyperAPIDriver, c as HyperAPIErrorData, d as HyperAPIRequest, l as HyperAPIModule, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIError, u as HyperAPIModuleResponse } from "./dev-BbFcODV4.mjs";
 import { EmptyObject, Promisable, UnknownRecord } from "type-fest";
 
 //#region src/api-errors.d.ts
@@ -70,18 +70,18 @@ declare class HyperAPIMethodNotAllowedError extends HyperAPIError {
 }
 //#endregion
 //#region src/main.d.ts
-declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends UnknownRecord = EmptyObject> {
+declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends UnknownRecord = EmptyObject, Resp = HyperAPIModuleResponse> {
   #private;
   private off;
-  constructor(driver: HyperAPIDriver<Req>, root?: string);
+  constructor(driver: HyperAPIDriver<Req, Resp>, root?: string);
   private hooks_before_router;
-  onBeforeRouter<ReqAdd extends UnknownRecord | void>(fn: (request: Req & ReqExtra) => Promisable<ReqAdd>): HyperAPI<Req, ReqExtra & ReqAdd>;
+  onBeforeRouter<ReqAdd extends UnknownRecord | void>(fn: (request: Req & ReqExtra) => Promisable<ReqAdd>): HyperAPI<Req, ReqExtra & ReqAdd, Resp>;
   private hooks_response;
   onResponse(fn: (request: Req & ReqExtra & {
-    response: HyperAPIResponse;
-  }) => Promisable<void>): HyperAPI<Req, ReqExtra>;
+    response: HyperAPIResponse<Resp>;
+  }) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
   private processRequest;
-  module(): HyperAPIModule<Req, ReqExtra>;
+  module(): HyperAPIModule<Req, ReqExtra, Resp>;
   destroy(): void;
 }
 //#endregion

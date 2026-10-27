@@ -8,9 +8,9 @@ import {
 } from './api-errors.js';
 import type { HyperAPIDriver } from './driver.js';
 import { HyperAPIError } from './error.js';
-import { HyperAPIModule } from './module.js';
+import { HyperAPIModule, type HyperAPIModuleResponse } from './module.js';
 import type { HyperAPIRequest } from './request.js';
-import { type HyperAPIResponse, isHyperAPIResponse } from './response.js';
+import type { HyperAPIResponse } from './response.js';
 import { HyperAPIRouter } from './router.js';
 import { hasCommonKeys } from './utils/record.js';
 
@@ -19,14 +19,17 @@ const ENTRYPOINT_PATH = nodePath.dirname(process.argv[1]!);
 export class HyperAPI<
 	Req extends HyperAPIRequest,
 	ReqExtra extends UnknownRecord = EmptyObject,
+	Resp = HyperAPIModuleResponse,
 > {
+	#driver;
 	#router;
 	private off: () => void;
 
 	constructor(
-		driver: HyperAPIDriver<Req>,
+		driver: HyperAPIDriver<Req, Resp>,
 		root: string = nodePath.join(ENTRYPOINT_PATH, 'hyper-api'),
 	) {
+		this.#driver = driver;
 		this.#router = new HyperAPIRouter(root);
 
 		this.off = driver.on('request', async (event) => {
@@ -46,7 +49,7 @@ export class HyperAPI<
 						});
 
 						if (result instanceof Promise) {
-							// oxlint-disable-next-line no-console
+							// oxlint-disable-next-line no-console promise/prefer-await-to-then
 							promises.push(result.catch(console.error));
 						}
 					} catch (error) {
@@ -71,24 +74,25 @@ export class HyperAPI<
 	) {
 		this.hooks_before_router.push(fn);
 
-		return this as HyperAPI<Req, ReqExtra & ReqAdd>;
+		return this as HyperAPI<Req, ReqExtra & ReqAdd, Resp>;
 	}
 
+	// eslint-disable-next-line unicorn/no-this-outside-of-class
 	private hooks_response: Parameters<typeof this.onResponse>[0][] = [];
 
 	onResponse(
 		fn: (
-			request: Req & ReqExtra & { response: HyperAPIResponse }, // Join<Req, Extend<ReqExtra, { response: HyperAPIResponse }>>,
+			request: Req & ReqExtra & { response: HyperAPIResponse<Resp> }, // Join<Req, Extend<ReqExtra, { response: HyperAPIResponse<Resp> }>>,
 		) => Promisable<void>,
 	) {
 		this.hooks_response.push(fn);
 
-		return this as HyperAPI<Req, ReqExtra>;
+		return this as HyperAPI<Req, ReqExtra, Resp>;
 	}
 
 	private async processRequest(
 		request: Req,
-	): Promise<[ReqExtra, HyperAPIResponse]> {
+	): Promise<[ReqExtra, HyperAPIResponse<Resp>]> {
 		// 1. *Driver* creates a request and passes it to the *Core*
 
 		// console.log('Processing request:', request);
@@ -143,9 +147,14 @@ export class HyperAPI<
 				...request,
 				...request_external,
 			});
-			if (isHyperAPIResponse(response) !== true) {
+			if (response instanceof HyperAPIError) {
+				return [request_external, response];
+			}
+
+			// The driver decides what its own transport can carry, not the core.
+			if (this.#driver.isValidResponse(response) !== true) {
 				throw new TypeError(
-					`Invalid response type from module ${router_response.route_data.file_path}. Expected Response, HyperAPIError, array, object or undefined.`,
+					`Invalid response type from module ${router_response.route_data.file_path}: ${this.#driver.constructor.name} cannot carry it.`,
 				);
 			}
 
@@ -163,8 +172,8 @@ export class HyperAPI<
 	}
 
 	// oxlint-disable-next-line class-methods-use-this
-	module(): HyperAPIModule<Req, ReqExtra> {
-		return new HyperAPIModule<Req, ReqExtra>();
+	module(): HyperAPIModule<Req, ReqExtra, Resp> {
+		return new HyperAPIModule<Req, ReqExtra, Resp>();
 	}
 
 	destroy(): void {
