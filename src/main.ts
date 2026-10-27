@@ -176,8 +176,9 @@ export class HyperAPI<
 		return new HyperAPIModule<Req, ReqExtra, Resp>();
 	}
 
-	destroy(): void {
+	destroy(): Promisable<void> {
 		this.off();
+		return this.#driver.destroy();
 	}
 }
 

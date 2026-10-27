@@ -1,5 +1,5 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const require_file_tree = require("./file-tree-CfV5Ssrh.cjs");
+const require_file_tree = require("./file-tree-9q3CDKak.cjs");
 let node_path = require("node:path");
 node_path = require_file_tree.__toESM(node_path, 1);
 let itty_router = require("itty-router");
@@ -268,6 +268,7 @@ var HyperAPI = class {
 	}
 	destroy() {
 		this.off();
+		return this.#driver.destroy();
 	}
 };
 //#endregion

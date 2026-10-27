@@ -93,6 +93,7 @@ declare class HyperAPIDriver<R extends HyperAPIRequest = HyperAPIRequest, Resp =
   */
   isValidResponse(response: unknown): response is Resp;
   fetch(request: R): Promise<HyperAPIResponse<Resp>>;
+  override destroy(): Promisable<void>;
 }
 //#endregion
 //#region src/router.d.ts

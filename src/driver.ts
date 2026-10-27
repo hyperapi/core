@@ -3,6 +3,7 @@ import { isRecord } from './dev.js';
 import type { HyperAPIModuleResponse } from './module.js';
 import type { HyperAPIRequest } from './request.js';
 import type { HyperAPIResponse } from './response.js';
+import type { Promisable } from 'type-fest';
 
 export class HyperAPIDriver<
 	R extends HyperAPIRequest = HyperAPIRequest,
@@ -44,7 +45,7 @@ export class HyperAPIDriver<
 		});
 	}
 
-	// override destroy(): void {
-	// 	super.destroy();
-	// }
+	override destroy(): Promisable<void> {
+		super.destroy();
+	}
 }

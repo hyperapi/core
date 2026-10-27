@@ -1,4 +1,4 @@
-import { a as HyperAPIDriver, c as HyperAPIErrorData, d as HyperAPIRequest, l as HyperAPIModule, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIError, u as HyperAPIModuleResponse } from "./dev-BbFcODV4.mjs";
+import { a as HyperAPIDriver, c as HyperAPIErrorData, d as HyperAPIRequest, l as HyperAPIModule, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIError, u as HyperAPIModuleResponse } from "./dev-dFEK8I9Q.mjs";
 import { EmptyObject, Promisable, UnknownRecord } from "type-fest";
 
 //#region src/api-errors.d.ts
@@ -82,7 +82,7 @@ declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends UnknownReco
   }) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
   private processRequest;
   module(): HyperAPIModule<Req, ReqExtra, Resp>;
-  destroy(): void;
+  destroy(): Promisable<void>;
 }
 //#endregion
 export { HyperAPI, HyperAPIAuthorizationError, HyperAPIBusyError, HyperAPICaptchaError, HyperAPIConfirmationError, HyperAPIError, HyperAPIForbiddenError, HyperAPIInternalError, HyperAPIInvalidParametersError, HyperAPIMaintenanceError, HyperAPIMethodNotAllowedError, HyperAPIOTPError, HyperAPIObjectsLimitError, HyperAPIRateLimitError, HyperAPIUnknownMethodError };

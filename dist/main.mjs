@@ -1,4 +1,4 @@
-import { a as isRecord, i as hasCommonKeys, t as getRoutes } from "./file-tree-GcgsxXKe.mjs";
+import { a as isRecord, i as hasCommonKeys, t as getRoutes } from "./file-tree-lPGUG2fN.mjs";
 import nodePath from "node:path";
 import { IttyRouter } from "itty-router";
 //#region src/error.ts
@@ -266,6 +266,7 @@ var HyperAPI = class {
 	}
 	destroy() {
 		this.off();
+		return this.#driver.destroy();
 	}
 };
 //#endregion
