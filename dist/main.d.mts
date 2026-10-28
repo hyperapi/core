@@ -1,4 +1,4 @@
-import { a as HyperAPIDriver, c as HyperAPIErrorData, d as HyperAPIRequest, l as HyperAPIModule, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIError, u as HyperAPIModuleResponse } from "./dev-dFEK8I9Q.mjs";
+import { a as HyperAPIDriver, c as HyperAPIErrorData, d as HyperAPIRequest, l as HyperAPIModule, o as HyperAPIResponse, p as HyperAPIMethod, s as HyperAPIError, u as HyperAPIModuleResponse } from "./dev-CCJSr8Ac.mjs";
 import { EmptyObject, Promisable, UnknownRecord } from "type-fest";
 
 //#region src/api-errors.d.ts

@@ -5,7 +5,7 @@ import type { HyperAPIRouteData } from '../router.js';
 import { parseFilename } from './filename.js';
 
 const RE_EXT = /\.(?<ext>[cm]?[jt]s)$/iu;
-const RE_METHOD = /\+(?<method>delete|get|options|patch|post|put)$/iu;
+const RE_METHOD = /\+(?<method>delete|get|options|patch|post|put|query)$/iu;
 
 type WalkState = {
 	path: string;

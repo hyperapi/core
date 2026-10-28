@@ -27,7 +27,17 @@ describe('route supports multiple methods', () => {
 			description: 'HTTP method not allowed',
 		});
 		expect(http.status).toBe(405);
-		expect(http.headers?.get('Allow')).toBe('GET');
+		expect(http.headers?.get('Allow')).toBe('GET, QUERY');
+	});
+
+	test('with QUERY', async () => {
+		const [success, response] = await driver.trigger('QUERY', 'router/x');
+		expect(success).toBe(true);
+		expect(response).toStrictEqual({
+			path: 'router/x+query.ts',
+			method: 'QUERY',
+			args: {},
+		});
 	});
 
 	test('with UNDEF', async () => {

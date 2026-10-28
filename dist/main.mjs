@@ -1,4 +1,4 @@
-import { a as isRecord, i as hasCommonKeys, t as getRoutes } from "./file-tree-lPGUG2fN.mjs";
+import { a as isRecord, i as hasCommonKeys, t as getRoutes } from "./file-tree-ZpqItYn0.mjs";
 import nodePath from "node:path";
 import { IttyRouter } from "itty-router";
 //#region src/error.ts
@@ -102,7 +102,7 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 	description = "HTTP method not allowed";
 	httpStatus = 405;
 	constructor(allowed_methods) {
-		const filtered_methods = allowed_methods.filter((method) => method !== "UNDEF");
+		const filtered_methods = allowed_methods.filter((method) => method !== "UNDEF").toSorted((a, b) => a.localeCompare(b));
 		super(void 0, filtered_methods.length > 0 ? { Allow: filtered_methods.join(", ") } : void 0);
 	}
 };

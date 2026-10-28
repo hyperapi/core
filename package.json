@@ -32,7 +32,7 @@
 	},
 	"dependencies": {
 		"itty-router": "5.0.24",
-		"neoevents": "0.3.0",
+		"neoevents": "0.3.1",
 		"type-fest": "5.7.0"
 	},
 	"devDependencies": {

@@ -5,6 +5,7 @@ export type HyperAPIMethod =
 	| 'PATCH'
 	| 'POST'
 	| 'PUT'
+	| 'QUERY'
 	| 'UNDEF';
 const METHODS = new Set<unknown>([
 	'DELETE',
@@ -13,6 +14,7 @@ const METHODS = new Set<unknown>([
 	'PATCH',
 	'POST',
 	'PUT',
+	'QUERY',
 	'UNDEF',
 ]);
 

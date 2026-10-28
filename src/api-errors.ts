@@ -104,9 +104,11 @@ export class HyperAPIMethodNotAllowedError extends HyperAPIError {
 	override httpStatus = 405; // Method Not Allowed
 
 	constructor(allowed_methods: HyperAPIMethod[]) {
-		const filtered_methods = allowed_methods.filter(
-			(method) => method !== 'UNDEF',
-		);
+		// Sorted: the route map follows filesystem order, which varies between
+		// runs, and a header that changes value for the same route breaks caching.
+		const filtered_methods = allowed_methods
+			.filter((method) => method !== 'UNDEF')
+			.toSorted((a, b) => a.localeCompare(b));
 		super(
 			undefined,
 			filtered_methods.length > 0

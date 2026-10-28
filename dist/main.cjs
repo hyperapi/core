@@ -1,5 +1,5 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const require_file_tree = require("./file-tree-9q3CDKak.cjs");
+const require_file_tree = require("./file-tree-BNFTvYfh.cjs");
 let node_path = require("node:path");
 node_path = require_file_tree.__toESM(node_path, 1);
 let itty_router = require("itty-router");
@@ -104,7 +104,7 @@ var HyperAPIMethodNotAllowedError = class extends HyperAPIError {
 	description = "HTTP method not allowed";
 	httpStatus = 405;
 	constructor(allowed_methods) {
-		const filtered_methods = allowed_methods.filter((method) => method !== "UNDEF");
+		const filtered_methods = allowed_methods.filter((method) => method !== "UNDEF").toSorted((a, b) => a.localeCompare(b));
 		super(void 0, filtered_methods.length > 0 ? { Allow: filtered_methods.join(", ") } : void 0);
 	}
 };
