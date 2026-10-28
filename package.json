@@ -52,7 +52,7 @@
 		"build": "tsdown src/main.ts src/dev.ts --clean --dts --format esm --format cjs --unused --publint",
 		"check": "lint && bun run build && bun run test",
 		"pack": "bun check && dev pack create",
-		"test": "npm run test:vitest && bun test --coverage",
+		"test": "bun test && npm run test:vitest",
 		"test:vitest": "vitest run --no-file-parallelism"
 	},
 	"repository": {
