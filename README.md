@@ -1,6 +1,7 @@
 # HyperAPI Core
 
 [![npm version](https://img.shields.io/npm/v/@hyperapi/core.svg)](https://www.npmjs.com/package/@hyperapi/core)
+[![Open on npmx.dev](https://npmx.dev/api/registry/badge/version/@hyperapi/core?style=shieldsio&label=npmx.dev)](https://npmx.dev/package/@hyperapi/core)
 [![license](https://img.shields.io/npm/l/@hyperapi/core.svg?color=blue)](https://github.com/hyperapi/core/blob/main/LICENSE)
 
 A powerful, type-safe foundation framework for building APIs with minimal boilerplate. HyperAPI Core provides routing, standardized API method modules, and hooks, while leaving the connection to the outside world to be handled by drivers.
