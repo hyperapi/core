@@ -74,13 +74,14 @@ declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends UnknownReco
   #private;
   private off;
   constructor(driver: HyperAPIDriver<Req, Resp>, root?: string);
+  private hooks_wrap_request;
+  wrapRequest(fn: (request: Req, next: () => void) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
   private hooks_before_router;
   onBeforeRouter<ReqAdd extends UnknownRecord | void>(fn: (request: Req & ReqExtra) => Promisable<ReqAdd>): HyperAPI<Req, ReqExtra & ReqAdd, Resp>;
   private hooks_response;
   onResponse(fn: (request: Req & ReqExtra & {
     response: HyperAPIResponse<Resp>;
   }) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
-  private processRequest;
   module(): HyperAPIModule<Req, ReqExtra, Resp>;
   destroy(): Promisable<void>;
 }

@@ -198,23 +198,34 @@ var HyperAPI = class {
 		this.#driver = driver;
 		this.#router = new HyperAPIRouter(root);
 		this.off = driver.on("request", async (event) => {
-			const [request_external, response] = await this.processRequest(event.detail.request);
-			if (this.hooks_response.length > 0) {
-				const promises = [];
-				for (const fn of this.hooks_response) try {
-					const result = fn({
-						...event.detail.request,
-						...request_external,
-						response
+			const { request } = event.detail;
+			if (request.path.startsWith("/") !== true) request.path = `/${request.path}`;
+			let response;
+			if (this.hooks_wrap_request) {
+				let pipeline = void 0;
+				let is_wrapper_done = false;
+				try {
+					await this.hooks_wrap_request(request, () => {
+						if (is_wrapper_done) {
+							console.error("`next` was called after the `wrapRequest` hook had finished, the request was not processed.");
+							return;
+						}
+						pipeline ??= this.#processRequest(request);
 					});
-					if (result instanceof Promise) promises.push(result.catch(console.error));
 				} catch (error) {
 					console.error(error);
 				}
-				await Promise.all(promises);
-			}
+				is_wrapper_done = true;
+				response = pipeline ? await pipeline : new HyperAPIInternalError();
+			} else response = await this.#processRequest(request);
 			event.detail.callback(response);
 		});
+	}
+	hooks_wrap_request;
+	wrapRequest(fn) {
+		if (this.hooks_wrap_request) throw new Error("Should not set second `wrapRequest` hook.");
+		this.hooks_wrap_request = fn;
+		return this;
 	}
 	hooks_before_router = [];
 	onBeforeRouter(fn) {
@@ -226,10 +237,27 @@ var HyperAPI = class {
 		this.hooks_response.push(fn);
 		return this;
 	}
-	async processRequest(request) {
+	async #processRequest(request) {
+		const [request_external, response] = await this.#processRequestPipeline(request);
+		if (this.hooks_response.length > 0) {
+			const promises = [];
+			for (const fn of this.hooks_response) try {
+				const result = fn({
+					...request,
+					...request_external,
+					response
+				});
+				if (result instanceof Promise) promises.push(result.catch(console.error));
+			} catch (error) {
+				console.error(error);
+			}
+			await Promise.all(promises);
+		}
+		return response;
+	}
+	async #processRequestPipeline(request) {
 		const request_external = {};
 		try {
-			if (request.path.startsWith("/") !== true) request.path = `/${request.path}`;
 			for (const fn of this.hooks_before_router) {
 				const request_added = await fn({
 					...request,

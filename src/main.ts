@@ -33,36 +33,59 @@ export class HyperAPI<
 		this.#router = new HyperAPIRouter(root);
 
 		this.off = driver.on('request', async (event) => {
-			const [request_external, response] = await this.processRequest(
-				event.detail.request,
-			);
+			const { request } = event.detail;
+			if (request.path.startsWith('/') !== true) {
+				request.path = `/${request.path}`;
+			}
 
-			if (this.hooks_response.length > 0) {
-				const promises = [];
-				for (const fn of this.hooks_response) {
-					// catch sync errors
-					try {
-						const result = fn({
-							...event.detail.request,
-							...request_external,
-							response,
-						});
-
-						if (result instanceof Promise) {
-							// oxlint-disable-next-line no-console promise/prefer-await-to-then
-							promises.push(result.catch(console.error));
+			let response: HyperAPIResponse<Resp>;
+			if (this.hooks_wrap_request) {
+				// cast keeps TS from narrowing to `undefined`, as it is assigned inside `next`
+				let pipeline = undefined as Promise<HyperAPIResponse<Resp>> | undefined;
+				let is_wrapper_done = false;
+				try {
+					await this.hooks_wrap_request(request, () => {
+						if (is_wrapper_done) {
+							// oxlint-disable-next-line no-console
+							console.error(
+								'`next` was called after the `wrapRequest` hook had finished, the request was not processed.',
+							);
+							return;
 						}
-					} catch (error) {
-						// oxlint-disable-next-line no-console
-						console.error(error);
-					}
+
+						pipeline ??= this.#processRequest(request);
+					});
+				} catch (error) {
+					// once `next` was called, the module ran, so its response is kept
+					// oxlint-disable-next-line no-console
+					console.error(error);
 				}
 
-				await Promise.all(promises);
+				is_wrapper_done = true;
+
+				response = pipeline ? await pipeline : new HyperAPIInternalError();
+			} else {
+				response = await this.#processRequest(request);
 			}
 
 			event.detail.callback(response);
 		});
+	}
+
+	private hooks_wrap_request:
+		| ((request: Req, next: () => void) => Promisable<void>)
+		| undefined;
+
+	wrapRequest(
+		fn: (request: Req, next: () => void) => Promisable<void>,
+	): HyperAPI<Req, ReqExtra, Resp> {
+		if (this.hooks_wrap_request) {
+			throw new Error('Should not set second `wrapRequest` hook.');
+		}
+
+		this.hooks_wrap_request = fn;
+
+		return this;
 	}
 
 	private hooks_before_router: ((
@@ -71,10 +94,11 @@ export class HyperAPI<
 
 	onBeforeRouter<ReqAdd extends UnknownRecord | void>(
 		fn: (request: Req & ReqExtra) => Promisable<ReqAdd>,
-	) {
+	): HyperAPI<Req, ReqExtra & ReqAdd, Resp> {
 		this.hooks_before_router.push(fn);
 
-		return this as HyperAPI<Req, ReqExtra & ReqAdd, Resp>;
+		// oxlint-disable-next-line typescript/no-explicit-any
+		return this as any;
 	}
 
 	// eslint-disable-next-line unicorn/no-this-outside-of-class
@@ -84,13 +108,44 @@ export class HyperAPI<
 		fn: (
 			request: Req & ReqExtra & { response: HyperAPIResponse<Resp> }, // Join<Req, Extend<ReqExtra, { response: HyperAPIResponse<Resp> }>>,
 		) => Promisable<void>,
-	) {
+	): HyperAPI<Req, ReqExtra, Resp> {
 		this.hooks_response.push(fn);
 
-		return this as HyperAPI<Req, ReqExtra, Resp>;
+		return this;
 	}
 
-	private async processRequest(
+	async #processRequest(request: Req): Promise<HyperAPIResponse<Resp>> {
+		const [request_external, response] =
+			await this.#processRequestPipeline(request);
+
+		if (this.hooks_response.length > 0) {
+			const promises = [];
+			for (const fn of this.hooks_response) {
+				// catch sync errors
+				try {
+					const result = fn({
+						...request,
+						...request_external,
+						response,
+					});
+
+					if (result instanceof Promise) {
+						// oxlint-disable-next-line no-console promise/prefer-await-to-then
+						promises.push(result.catch(console.error));
+					}
+				} catch (error) {
+					// oxlint-disable-next-line no-console
+					console.error(error);
+				}
+			}
+
+			await Promise.all(promises);
+		}
+
+		return response;
+	}
+
+	async #processRequestPipeline(
 		request: Req,
 	): Promise<[ReqExtra, HyperAPIResponse<Resp>]> {
 		// 1. *Driver* creates a request and passes it to the *Core*
@@ -100,10 +155,6 @@ export class HyperAPI<
 		const request_external = {} as ReqExtra;
 
 		try {
-			if (request.path.startsWith('/') !== true) {
-				request.path = `/${request.path}`;
-			}
-
 			// 2. *Core* executes all registered `onBeforeRouter` hooks...
 			for (const fn of this.hooks_before_router) {
 				// oxlint-disable-next-line no-await-in-loop
