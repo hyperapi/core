@@ -240,7 +240,7 @@ var HyperAPI = class {
 		return this;
 	}
 	async #processRequest(request) {
-		const [request_external, response] = await this.#processRequestPipeline(request);
+		const [request_external, response, error_pipeline] = await this.#processRequestPipeline(request);
 		if (this.hooks_response.length > 0) {
 			const promises = [];
 			for (const fn of this.hooks_response) try {
@@ -248,7 +248,7 @@ var HyperAPI = class {
 					...request,
 					...request_external,
 					response
-				});
+				}, error_pipeline);
 				if (result instanceof Promise) promises.push(result.catch(console.error));
 			} catch (error) {
 				console.error(error);
@@ -274,10 +274,7 @@ var HyperAPI = class {
 				...router_response.args
 			};
 			const handler = await router_response.getHandler();
-			if (handler === void 0) {
-				console.error(`There is no handler in ${router_response.route_data.file_path}. Did you forget "export default" in the module?`);
-				throw new HyperAPIInternalError();
-			}
+			if (handler === void 0) throw new Error(`There is no handler in ${router_response.route_data.file_path}. Did you forget "export default" in the module?`);
 			const { response } = await handler._run({
 				...request,
 				...request_external
@@ -288,7 +285,11 @@ var HyperAPI = class {
 		} catch (error) {
 			if (error instanceof HyperAPIError) return [request_external, error];
 			console.error(error);
-			return [request_external, new HyperAPIInternalError()];
+			return [
+				request_external,
+				new HyperAPIInternalError(),
+				error
+			];
 		}
 	}
 	module() {

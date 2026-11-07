@@ -1,10 +1,11 @@
-// oxlint-disable max-lines-per-function, max-nested-callbacks
+// oxlint-disable max-lines, max-lines-per-function, max-nested-callbacks
 
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { HyperAPITestDriver, type TestRequest } from '../test/driver.js';
 import { HyperAPI } from './main.js';
 import type { HyperAPIResponse } from './response.js';
+import type { HyperAPIMethod } from './utils/methods.js';
 
 /**
  * Creates an API with the given `wrapRequest` hook and a mock that counts pipeline runs.
@@ -31,6 +32,32 @@ function createWrappedApi(
 			driver.destroy();
 		},
 	};
+}
+
+/**
+ * Triggers a request and returns the `error` argument passed to the `onResponse` hook.
+ * @param method - Request method.
+ * @param path - Request path.
+ * @returns -
+ */
+async function getResponseHookError(method: HyperAPIMethod, path: string) {
+	const mockFn = vi.fn();
+	const driver = new HyperAPITestDriver();
+	const hyperApi = new HyperAPI(
+		driver,
+		new URL('../test/hyper-api', import.meta.url).pathname,
+	).onResponse((_request, error) => {
+		expectTypeOf(error).toBeUnknown();
+		mockFn(error);
+	});
+
+	await driver.trigger(method, path);
+
+	hyperApi.destroy();
+	driver.destroy();
+
+	expect(mockFn).toHaveBeenCalledOnce();
+	return mockFn.mock.calls[0]?.[0];
 }
 
 test('HyperAPI constructor', () => {
@@ -216,6 +243,36 @@ describe('hooks', () => {
 				hyperApi.destroy();
 				driver.destroy();
 			});
+		});
+	});
+
+	describe('onResponse error argument', () => {
+		test('undefined on success', async () => {
+			expect(await getResponseHookError('GET', '/router')).toBeUndefined();
+		});
+
+		test('undefined for HyperAPIError', async () => {
+			expect(
+				await getResponseHookError('UNDEF', '/errors/api'),
+			).toBeUndefined();
+		});
+
+		test('original error replaced with internal error', async () => {
+			const error = await getResponseHookError('UNDEF', '/errors/internal');
+			expect(error).toBeInstanceOf(Error);
+			expect(error).toHaveProperty(
+				'message',
+				'This is a test error inside API module.',
+			);
+		});
+
+		test('module without default export', async () => {
+			const error = await getResponseHookError('UNDEF', '/errors/no-handler');
+			expect(error).toBeInstanceOf(Error);
+			expect(error).toHaveProperty(
+				'message',
+				expect.stringContaining('Did you forget "export default"'),
+			);
 		});
 	});
 

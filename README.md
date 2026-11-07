@@ -123,11 +123,12 @@ import { SomeHttpDriver } from '@hyperapi/some-http-driver'; // fictional driver
 const driver = new SomeHttpDriver({ port: 3000 });
 
 // Initialize HyperAPI with the driver and export it
-export const hyperApi = new HyperAPI({
+export const hyperApi = new HyperAPI(
   driver,
-  // Optional: custom root path for API methods
-  // root: path.join(import.meta.dir, 'api')
-});
+  // Optional: custom root path for API methods,
+  // defaults to "hyper-api" directory next to the entry script
+  // path.join(import.meta.dir, 'api'),
+);
 
 console.log('API server running on http://localhost:3000');
 ```
@@ -169,15 +170,17 @@ export default hyperApi.module()
 HyperAPI Core processes requests through a well-defined sequence of steps:
 
 1. *Driver* creates a [request](src/request.ts#L6) and passes it to the *Core*
-2. *Core* runs all registered `onBeforeRouter` hooks with request it received from the *Driver*
-3. *Core* uses a file router to match the request path and method to a module file
-   - If no match is found, a [`HyperAPIUnknownMethodError`](src/api-errors.ts#L36) is thrown
-4. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
-5. *Core* imports the matched module file dynamically and runs it
-6. *Core* executes all registered `onResponse` hooks
-7. Finally, *Core* passes the response back to the *Driver*, which sends it to the client.
+2. *Core* runs the `wrapRequest` hook, if registered. Steps 3–7 run inside its `next()` call
+3. *Core* runs all registered `onBeforeRouter` hooks with request it received from the *Driver*
+4. *Core* uses a file router to match the request path and method to a module file
+   - If no match is found, a [`HyperAPIUnknownMethodError`](src/api-errors.ts#L37) is thrown
+5. *Core* merges arguments received from the driver with arguments extracted from the request path by the file router
+6. *Core* imports the matched module file dynamically and runs it
+   - If the module file has no default export, an error is thrown
+7. *Core* executes all registered `onResponse` hooks
+8. Finally, *Core* passes the response back to the *Driver*, which sends it to the client.
 
-If an error occurs at any steps from 2 to 5, the pipeline short-circuits to the step 6. Before executing step 6, *Core* sets [`HyperAPIInternalError`](src/api-errors.ts#L18) as a response, if error thrown is not instance of `HyperAPIError`.
+If an error occurs at any steps from 3 to 6, the pipeline short-circuits to the step 7. Before executing step 7, *Core* sets [`HyperAPIInternalError`](src/api-errors.ts#L21) as a response, if error thrown is not instance of `HyperAPIError`. The original error is passed to `onResponse` hooks as the second argument.
 
 ## Using plugins before executing the module
 
@@ -230,7 +233,39 @@ export default hyperApi.module()
 
 HyperAPI provides several hooks for extending functionality at different stages of the request pipeline.
 
-### `beforeRouter` hook
+### `wrapRequest` hook
+
+Runs before all other hooks and wraps the rest of the pipeline: other hooks and the module run inside the `next()` call. Use it to run the request inside some context, like an OpenTelemetry span or an `AsyncLocalStorage` store, so it is available in other hooks and modules.
+
+- Only one `wrapRequest` hook can be registered, registering a second one throws.
+- The hook receives the request from the *Driver* with normalized path, before `onBeforeRouter` hooks extend it.
+- `next()` takes no arguments and returns nothing: it starts the pipeline but does not wait for it. To do something when the request is finished, use the `onResponse` hook, which runs inside the same context.
+- If the hook does not call `next()` before it finishes, the response is `HyperAPIInternalError` and the module does not run. Calling `next()` later only logs an error.
+- Calling `next()` more than once runs the pipeline only once.
+- Errors thrown from this hook are logged. They do not change the response if `next()` was already called.
+
+```typescript
+import { trace } from '@opentelemetry/api';
+
+const tracer = trace.getTracer('api');
+
+hyperApi
+  .wrapRequest((request, next) => {
+    tracer.startActiveSpan(`${request.method} ${request.path}`, () => {
+      next();
+    });
+  })
+  .onResponse((request, error) => {
+    // the span started in wrapRequest is still active here
+    const span = trace.getActiveSpan();
+    if (error instanceof Error) {
+      span?.recordException(error);
+    }
+    span?.end();
+  });
+```
+
+### `onBeforeRouter` hook
 
 Executed after path normalization but before route matching. Use for logging, request inspection, or early validation. If this hook returns an object, it will be merged with the request object. However, extra properties will be visible only to the next hooks, not the API module.
 
@@ -267,6 +302,16 @@ hyperApi.onResponse((request) => {
 });
 ```
 
+If a hook or module throws something that is not an instance of `HyperAPIError`, the response becomes `HyperAPIInternalError` and the original thrown value is passed as the second argument. Otherwise it is `undefined`.
+
+```typescript
+hyperApi.onResponse((request, error) => {
+  if (error !== undefined) {
+    reportError(error);
+  }
+});
+```
+
 ## Error Handling
 
 HyperAPI provides built-in error type [`HyperAPIError`](src/error.ts) for standardized error handling. If you want to return an error from your module, you can throw an instance of `HyperAPIError` or its subclasses.
@@ -275,20 +320,22 @@ HyperAPI provides built-in error type [`HyperAPIError`](src/error.ts) for standa
 import { HyperAPIError } from '@hyperapi/core';
 
 // for example, you create custom error for limiting access to some API methods
-class HyperAPIAccessDeniedError extends HyperAPIError {
+// optional: specify type of additional information to return as a type argument
+class HyperAPIAccessDeniedError extends HyperAPIError<{ foo: string }> {
   // mandatory: specify numeric API code greater than 100
   override code = 101;
   // mandatory: specify text description
   override description = 'Access to this API method is denied';
-  // optional: specify object with additional information to return
-  override data: { foo: 'bar' };
   // optional: specify HTTP status code
   override httpStatus = 403; // Forbidden
   // optional: specify HTTP headers
-  override httpHeaders = {
+  override httpHeaders = new Headers({
     'X-Access-Denied': '1',
-  };
+  });
 }
+
+// additional information is passed to the constructor
+throw new HyperAPIAccessDeniedError({ foo: 'bar' });
 ```
 
 Now you can throw this error from your module or hooks. Drivers will automatically convert it to a proper response based on their protocols.

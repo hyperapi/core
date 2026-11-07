@@ -81,7 +81,7 @@ declare class HyperAPI<Req extends HyperAPIRequest, ReqExtra extends UnknownReco
   private hooks_response;
   onResponse(fn: (request: Req & ReqExtra & {
     response: HyperAPIResponse<Resp>;
-  }) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
+  }, error: unknown) => Promisable<void>): HyperAPI<Req, ReqExtra, Resp>;
   module(): HyperAPIModule<Req, ReqExtra, Resp>;
   destroy(): Promisable<void>;
 }

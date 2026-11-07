@@ -107,6 +107,8 @@ export class HyperAPI<
 	onResponse(
 		fn: (
 			request: Req & ReqExtra & { response: HyperAPIResponse<Resp> }, // Join<Req, Extend<ReqExtra, { response: HyperAPIResponse<Resp> }>>,
+			/** Value thrown in the pipeline and replaced with `HyperAPIInternalError` in the response, `undefined` otherwise. */
+			error: unknown,
 		) => Promisable<void>,
 	): HyperAPI<Req, ReqExtra, Resp> {
 		this.hooks_response.push(fn);
@@ -115,7 +117,7 @@ export class HyperAPI<
 	}
 
 	async #processRequest(request: Req): Promise<HyperAPIResponse<Resp>> {
-		const [request_external, response] =
+		const [request_external, response, error_pipeline] =
 			await this.#processRequestPipeline(request);
 
 		if (this.hooks_response.length > 0) {
@@ -123,11 +125,14 @@ export class HyperAPI<
 			for (const fn of this.hooks_response) {
 				// catch sync errors
 				try {
-					const result = fn({
-						...request,
-						...request_external,
-						response,
-					});
+					const result = fn(
+						{
+							...request,
+							...request_external,
+							response,
+						},
+						error_pipeline,
+					);
 
 					if (result instanceof Promise) {
 						// oxlint-disable-next-line no-console promise/prefer-await-to-then
@@ -147,7 +152,7 @@ export class HyperAPI<
 
 	async #processRequestPipeline(
 		request: Req,
-	): Promise<[ReqExtra, HyperAPIResponse<Resp>]> {
+	): Promise<[ReqExtra, HyperAPIResponse<Resp>, unknown?]> {
 		// 1. *Driver* creates a request and passes it to the *Core*
 
 		// console.log('Processing request:', request);
@@ -186,11 +191,9 @@ export class HyperAPI<
 			// 5. *Core* imports the matched module file...
 			const handler = await router_response.getHandler();
 			if (handler === undefined) {
-				// oxlint-disable-next-line no-console
-				console.error(
+				throw new Error(
 					`There is no handler in ${router_response.route_data.file_path}. Did you forget "export default" in the module?`,
 				);
-				throw new HyperAPIInternalError();
 			}
 
 			// 6. *Core* calls the module
@@ -218,7 +221,7 @@ export class HyperAPI<
 			// oxlint-disable-next-line no-console
 			console.error(error);
 
-			return [request_external, new HyperAPIInternalError()];
+			return [request_external, new HyperAPIInternalError(), error];
 		}
 	}
 
